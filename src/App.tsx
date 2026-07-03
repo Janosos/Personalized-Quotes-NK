@@ -266,6 +266,41 @@ export const App: React.FC = () => {
     }
   };
 
+  const downloadOriginalImages = (clientName: string) => {
+    const triggerDownload = (file: File, suffix: string) => {
+      const fileExt = file.name.substring(file.name.lastIndexOf('.')) || '.png';
+      const cleanSuffix = suffix.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').replace(/[^a-z0-9_-]/g, '');
+      const downloadName = `diseno_${cleanSuffix}_${clientName}${fileExt}`;
+
+      const url = URL.createObjectURL(file);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = downloadName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    };
+
+    if (activeProduct === 'ropa') {
+      Object.entries(ropaConfig.positions).forEach(([posName, pos]) => {
+        if (pos.active && pos.file) {
+          triggerDownload(pos.file, posName);
+        }
+      });
+    } else if (activeProduct === 'gorras') {
+      Object.entries(capConfig.positions).forEach(([posName, pos]) => {
+        if (pos.active && pos.file) {
+          triggerDownload(pos.file, posName);
+        }
+      });
+    } else if (activeProduct === 'parches') {
+      if (patchConfig.file) {
+        triggerDownload(patchConfig.file, `parche_${patchConfig.shape}`);
+      }
+    }
+  };
+
   // Action: Generate and save PDF directly (synchronously to bypass sandboxing blocks!)
   const handleDownloadQuote = () => {
     if (!validateForm()) {
@@ -291,6 +326,7 @@ export const App: React.FC = () => {
       const pdfFilename = `cotizacion_nakama_${sanitizedClientName || 'cliente'}.pdf`;
       
       doc.save(pdfFilename);
+      downloadOriginalImages(sanitizedClientName);
     } catch (err) {
       console.error(err);
       alert('Ocurrió un error al generar la cotización en PDF. Inténtalo de nuevo.');
@@ -322,6 +358,7 @@ export const App: React.FC = () => {
       const pdfFilename = `cotizacion_nakama_${sanitizedClientName || 'cliente'}.pdf`;
       
       doc.save(pdfFilename);
+      downloadOriginalImages(sanitizedClientName);
     } catch (err) {
       console.error('Error auto-generating PDF for WhatsApp:', err);
     }
