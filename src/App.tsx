@@ -32,6 +32,9 @@ export const App: React.FC = () => {
   // Interactive slot selection: 1 (Area 1) or 2 (Area 2)
   const [activeSlot, setActiveSlot] = useState<1 | 2>(1);
 
+  // Form errors validation state
+  const [formErrors, setFormErrors] = useState<{ name?: string; phone?: string; positions?: string }>({});
+
   // Client Info State (Marca/Proyecto field is removed)
   const [clientDetails, setClientDetails] = useState<ClientDetails>({
     name: '',
@@ -122,57 +125,37 @@ export const App: React.FC = () => {
   const [isSubmitShaking, setIsSubmitShaking] = useState(false);
 
   // Form Validation
-  const validateForm = (action: 'download' | 'whatsapp') => {
+  const validateForm = (): boolean => {
+    const errors: { name?: string; phone?: string; positions?: string } = {};
+
     if (!clientDetails.name.trim()) {
-      alert('Por favor, ingresa tu nombre en la sección de datos del cliente.');
-      return false;
+      errors.name = 'Por favor, ingresa tu nombre completo.';
     }
     if (!clientDetails.phone.trim()) {
-      alert('Por favor, ingresa tu teléfono en la sección de datos del cliente.');
-      return false;
+      errors.phone = 'Por favor, ingresa tu teléfono (WhatsApp).';
     }
 
     if (activeProduct === 'ropa') {
       const activePositions = Object.values(ropaConfig.positions).filter(p => p.active);
       if (activePositions.length === 0) {
-        alert('Debes seleccionar al menos una posición de diseño para personalizar tu prenda.');
-        return false;
-      }
-      
-      const missingFiles = activePositions.filter(p => !p.file);
-      if (missingFiles.length > 0 && action === 'download') {
-        const confirmProceed = window.confirm(
-          `Tienes ${missingFiles.length} área(s) sin diseño cargado. ¿Deseas descargar la cotización de todas formas?`
-        );
-        if (!confirmProceed) return false;
+        errors.positions = 'Debes seleccionar al menos una posición de diseño para personalizar tu prenda (haz clic en la camiseta).';
       }
     } else if (activeProduct === 'gorras') {
       const activePositions = Object.values(capConfig.positions).filter(p => p.active);
       if (activePositions.length === 0) {
-        alert('Debes seleccionar al menos una posición de diseño para tu gorra.');
-        return false;
-      }
-      const missingFiles = activePositions.filter(p => !p.file);
-      if (missingFiles.length > 0 && action === 'download') {
-        const confirmProceed = window.confirm(
-          `Tienes ${missingFiles.length} área(s) de gorra sin diseño cargado. ¿Deseas descargar la cotización de todas formas?`
-        );
-        if (!confirmProceed) return false;
-      }
-    } else if (activeProduct === 'parches') {
-      if (!patchConfig.file && action === 'download') {
-        const confirmProceed = window.confirm(
-          'No has cargado ningún diseño para el parche. ¿Deseas descargar la cotización de todas formas?'
-        );
-        if (!confirmProceed) return false;
+        errors.positions = 'Debes seleccionar al menos una posición de diseño para tu gorra.';
       }
     }
 
-    return true;
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   // SVG Visualizer hotspots click handler
   const handlePositionToggle = (position: string) => {
+    if (formErrors.positions) {
+      setFormErrors(prev => ({ ...prev, positions: undefined }));
+    }
     if (activeProduct === 'ropa') {
       if (activeSlot === 1) {
         if (position === area2Pos) {
@@ -272,7 +255,7 @@ export const App: React.FC = () => {
 
   // Action: Generate PDF & ZIP
   const handleDownloadQuote = async () => {
-    if (!validateForm('download')) {
+    if (!validateForm()) {
       triggerSubmitShake();
       return;
     }
@@ -302,7 +285,7 @@ export const App: React.FC = () => {
 
   // Action: Send WhatsApp (Bypasses popup blocker by starting ZIP generation asynchronously)
   const handleWhatsAppQuote = () => {
-    if (!validateForm('whatsapp')) {
+    if (!validateForm()) {
       triggerSubmitShake();
       return;
     }
@@ -630,6 +613,13 @@ export const App: React.FC = () => {
           A continuación, configura las técnicas, medidas y diseños para las posiciones seleccionadas.
         </p>
 
+        {formErrors.positions && (
+          <div className="alert alert-danger py-2 small mb-3 border-0 bg-danger bg-opacity-10 text-danger">
+            <i className="bi bi-exclamation-triangle-fill me-2"></i>
+            {formErrors.positions}
+          </div>
+        )}
+
         {activeProduct === 'ropa' ? (
           <div>
             {/* AREA 1 (Primary Customization) */}
@@ -795,23 +785,41 @@ export const App: React.FC = () => {
                     <label className="form-label text-muted small uppercase fw-bold">Nombre Completo *</label>
                     <input
                       type="text"
-                      className="form-control"
+                      className={`form-control ${formErrors.name ? 'is-invalid border-danger' : ''}`}
                       value={clientDetails.name}
-                      onChange={(e) => setClientDetails({ ...clientDetails, name: e.target.value })}
+                      onChange={(e) => {
+                        setClientDetails({ ...clientDetails, name: e.target.value });
+                        if (formErrors.name) setFormErrors({ ...formErrors, name: undefined });
+                      }}
                       placeholder="Tu nombre o contacto"
                       required
                     />
+                    {formErrors.name && (
+                      <div className="text-danger small mt-1">
+                        <i className="bi bi-exclamation-circle-fill me-1"></i>
+                        {formErrors.name}
+                      </div>
+                    )}
                   </div>
                   <div className="col-12">
                     <label className="form-label text-muted small uppercase fw-bold">Teléfono de Contacto (WhatsApp) *</label>
                     <input
                       type="text"
-                      className="form-control"
+                      className={`form-control ${formErrors.phone ? 'is-invalid border-danger' : ''}`}
                       value={clientDetails.phone}
-                      onChange={(e) => setClientDetails({ ...clientDetails, phone: e.target.value })}
+                      onChange={(e) => {
+                        setClientDetails({ ...clientDetails, phone: e.target.value });
+                        if (formErrors.phone) setFormErrors({ ...formErrors, phone: undefined });
+                      }}
                       placeholder="Ej. +52 662 123 4567"
                       required
                     />
+                    {formErrors.phone && (
+                      <div className="text-danger small mt-1">
+                        <i className="bi bi-exclamation-circle-fill me-1"></i>
+                        {formErrors.phone}
+                      </div>
+                    )}
                   </div>
                   <div className="col-12">
                     <label className="form-label text-muted small uppercase fw-bold">Correo Electrónico</label>
