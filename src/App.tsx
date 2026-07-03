@@ -16,8 +16,7 @@ export const App: React.FC = () => {
   const [clientDetails, setClientDetails] = useState<ClientDetails>({
     name: '',
     phone: '',
-    email: '',
-    company: ''
+    email: ''
   });
 
   // State: Clothing (Ropa)
@@ -112,6 +111,13 @@ export const App: React.FC = () => {
   const handlePositionToggle = (position: string) => {
     if (activeProduct === 'ropa') {
       const isCurrentlyActive = ropaConfig.positions[position]?.active;
+      const activeCount = Object.values(ropaConfig.positions).filter(p => p.active).length;
+
+      if (!isCurrentlyActive && activeCount >= 2) {
+        alert('Solo es posible personalizar un máximo de 2 áreas por prenda (Bordado y Bordado, Bordado y Estampado, Estampado y Bordado, o Estampado y Estampado).');
+        return;
+      }
+
       const updatedPositions = { ...ropaConfig.positions };
       if (isCurrentlyActive) {
         updatedPositions[position] = { ...updatedPositions[position], active: false };
@@ -181,13 +187,35 @@ export const App: React.FC = () => {
   };
 
   // Action: Send WhatsApp
-  const handleWhatsAppQuote = () => {
+  const handleWhatsAppQuote = async () => {
     if (!validateForm('whatsapp')) {
       triggerSubmitShake();
       return;
     }
 
-    const number = '5219999999999'; // Brand contact placeholder number (replace as needed)
+    // Auto-generate and download ZIP file so the user can easily attach it
+    try {
+      const doc = generateQuotePDF(
+        clientDetails,
+        activeProduct,
+        ropaConfig,
+        patchConfig,
+        capConfig
+      );
+
+      await generateQuoteZIP(
+        clientDetails.name,
+        doc,
+        activeProduct,
+        ropaConfig,
+        patchConfig,
+        capConfig
+      );
+    } catch (err) {
+      console.error('Error auto-generating ZIP for WhatsApp:', err);
+    }
+
+    const number = '526622455087'; // Updated brand contact number
     
     let summaryText = '';
     if (activeProduct === 'ropa') {
@@ -203,10 +231,9 @@ export const App: React.FC = () => {
     const message = `¡Hola Nakama! Me gustaría solicitar la cotización formal de mis personalizados con los siguientes datos:\n\n` +
       `*Cliente:* ${clientDetails.name}\n` +
       `*Teléfono:* ${clientDetails.phone}\n` +
-      `*Email:* ${clientDetails.email || 'N/A'}\n` +
-      `*Proyecto/Empresa:* ${clientDetails.company || 'N/A'}\n\n` +
+      `*Email:* ${clientDetails.email || 'N/A'}\n\n` +
       `*Detalle de Producto:*\n${summaryText}\n\n` +
-      `_Acabo de descargar la cotización en formato PDF/ZIP. Les enviaré el archivo por este chat para verificar los diseños de referencia._`;
+      `_Se ha descargado automáticamente el archivo ZIP con mi cotización y diseños. Se lo adjunto a continuación en este chat para revisión técnica._`;
 
     const encoded = encodeURIComponent(message);
     window.open(`https://wa.me/${number}?text=${encoded}`, '_blank');
@@ -352,16 +379,7 @@ export const App: React.FC = () => {
                       placeholder="ejemplo@correo.com"
                     />
                   </div>
-                  <div className="col-12">
-                    <label className="form-label text-muted small uppercase fw-bold">Marca / Proyecto</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value={clientDetails.company}
-                      onChange={(e) => setClientDetails({ ...clientDetails, company: e.target.value })}
-                      placeholder="Nombre de tu marca de ropa"
-                    />
-                  </div>
+
                 </div>
               </div>
 

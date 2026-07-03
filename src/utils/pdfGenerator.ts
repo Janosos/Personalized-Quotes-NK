@@ -93,8 +93,7 @@ export function generateQuotePDF(
   doc.text(`Nombre: ${client.name || 'N/A'}`, 20, 49);
   doc.text(`Email: ${client.email || 'N/A'}`, 20, 54);
   doc.text(`Teléfono: ${client.phone || 'N/A'}`, 20, 59);
-  doc.text(`Empresa/Proyecto: ${client.company || 'N/A'}`, 100, 49);
-  doc.text(`Tipo de Producto: ${productType.toUpperCase()}`, 100, 54);
+  doc.text(`Tipo de Producto: ${productType.toUpperCase()}`, 100, 49);
 
   // Customization Specs Table
   let currentY = 73;

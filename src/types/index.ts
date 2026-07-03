@@ -2,7 +2,6 @@ export interface ClientDetails {
   name: string;
   phone: string;
   email: string;
-  company: string;
 }
 
 export interface GarmentPosition {

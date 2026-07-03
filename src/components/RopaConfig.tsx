@@ -80,6 +80,13 @@ export const RopaConfig: React.FC<RopaConfigProps> = ({ config, onChange }) => {
 
   const handlePositionToggle = (position: string) => {
     const isCurrentlyActive = config.positions[position]?.active;
+    const activeCount = Object.values(config.positions).filter(p => p.active).length;
+
+    if (!isCurrentlyActive && activeCount >= 2) {
+      alert('Solo es posible personalizar un máximo de 2 áreas por prenda (Bordado y Bordado, Bordado y Estampado, Estampado y Bordado, o Estampado y Estampado).');
+      return;
+    }
+
     const updatedPositions = { ...config.positions };
 
     if (isCurrentlyActive) {
