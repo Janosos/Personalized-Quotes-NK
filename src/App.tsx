@@ -8,27 +8,47 @@ import { Marquee } from './components/Marquee';
 import { generateQuotePDF } from './utils/pdfGenerator';
 import { generateQuoteZIP } from './utils/zipGenerator';
 
+const availableGarmentPositions = [
+  'Pecho Izquierdo',
+  'Pecho Derecho',
+  'Pecho en Medio',
+  'Enfrente',
+  'Espalda',
+  'Manga Izquierda',
+  'Manga Derecha'
+];
+
 export const App: React.FC = () => {
   // Tab/Product Selection
   const [activeProduct, setActiveProduct] = useState<ProductType>('ropa');
 
-  // Currently active position being configured below the visualizer
+  // Interactive UI slot mappings for clothing
+  const [area1Pos, setArea1Pos] = useState<string>('Pecho Izquierdo');
+  const [area2Pos, setArea2Pos] = useState<string | null>(null);
+
+  // Selected position currently focused/highlighted in visualizer
   const [selectedPosition, setSelectedPosition] = useState<string | null>('Pecho Izquierdo');
 
-  // Client Info State (Marca/Proyecto company field is removed)
+  // Client Info State (Marca/Proyecto field is removed)
   const [clientDetails, setClientDetails] = useState<ClientDetails>({
     name: '',
     phone: '',
     email: ''
   });
 
-  // State: Clothing (Ropa) - Defaulting to DTF and maximum of 2 positions allowed
+  // State: Clothing (Ropa) - ALL 7 areas are fully initialized in the state to avoid undefined errors
   const [ropaConfig, setRopaConfig] = useState<GarmentCustomization>({
     model: 'Oversize',
     color: 'Negro',
     quantity: 10,
     positions: {
-      'Pecho Izquierdo': { active: true, type: 'Bordado', size: '10x10', file: null, filePreview: '' }
+      'Pecho Izquierdo': { active: true, type: 'Bordado', size: '10x10', file: null, filePreview: '' },
+      'Pecho Derecho': { active: false, type: 'Bordado', size: '10x10', file: null, filePreview: '' },
+      'Pecho en Medio': { active: false, type: 'Bordado', size: '10x10', file: null, filePreview: '' },
+      'Enfrente': { active: false, type: 'DTF', size: '20x25', file: null, filePreview: '' },
+      'Espalda': { active: false, type: 'DTF', size: '28x32', file: null, filePreview: '' },
+      'Manga Izquierda': { active: false, type: 'DTF', size: '8x8', file: null, filePreview: '' },
+      'Manga Derecha': { active: false, type: 'DTF', size: '8x8', file: null, filePreview: '' }
     },
     additionalDetails: ''
   });
@@ -44,28 +64,56 @@ export const App: React.FC = () => {
     additionalDetails: ''
   });
 
-  // State: Caps (Gorras)
+  // State: Caps (Gorras) - Fully initialized
   const [capConfig, setCapConfig] = useState<CapCustomization>({
     option: 'Bordado Al frente',
     model: 'Snapback (Visera plana)',
     quantity: 20,
     add3D: true,
     positions: {
-      'Enfrente': { active: true, type: 'Bordado', size: 'Regular', file: null, filePreview: '' }
+      'Enfrente': { active: true, type: 'Bordado', size: 'Regular', file: null, filePreview: '' },
+      'Lado izquierdo': { active: false, type: 'Bordado', size: 'Regular', file: null, filePreview: '' },
+      'Lado Derecho': { active: false, type: 'Bordado', size: 'Regular', file: null, filePreview: '' }
     },
     additionalDetails: ''
   });
 
-  // Reset selectedPosition when product tab changes
+  // Sync effect: automatically sync area1Pos and area2Pos into ropaConfig.positions active states
   useEffect(() => {
     if (activeProduct === 'ropa') {
-      setSelectedPosition('Pecho Izquierdo');
+      const updatedPositions = { ...ropaConfig.positions };
+      let changed = false;
+
+      Object.keys(updatedPositions).forEach(key => {
+        const shouldBeActive = key === area1Pos || key === area2Pos;
+        if (updatedPositions[key].active !== shouldBeActive) {
+          updatedPositions[key] = {
+            ...updatedPositions[key],
+            active: shouldBeActive
+          };
+          changed = true;
+        }
+      });
+
+      if (changed) {
+        setRopaConfig(prev => ({
+          ...prev,
+          positions: updatedPositions
+        }));
+      }
+    }
+  }, [area1Pos, area2Pos, activeProduct]);
+
+  // Sync effect: automatically reset selectedPosition when switching tabs
+  useEffect(() => {
+    if (activeProduct === 'ropa') {
+      setSelectedPosition(area1Pos);
     } else if (activeProduct === 'gorras') {
       setSelectedPosition('Enfrente');
     } else {
       setSelectedPosition(null);
     }
-  }, [activeProduct]);
+  }, [activeProduct, area1Pos]);
 
   // Shake effect for validation alerts
   const [isSubmitShaking, setIsSubmitShaking] = useState(false);
@@ -120,54 +168,46 @@ export const App: React.FC = () => {
     return true;
   };
 
-  // Restricts to maximum of 2 positions
+  // SVG Visualizer hotspots click handler
   const handlePositionToggle = (position: string) => {
     if (activeProduct === 'ropa') {
-      const isCurrentlyActive = ropaConfig.positions[position]?.active;
-      const activeCount = Object.values(ropaConfig.positions).filter(p => p.active).length;
-
-      if (!isCurrentlyActive && activeCount >= 2) {
-        alert('Solo es posible personalizar un máximo de 2 áreas por prenda (Bordado y Bordado, Bordado y DTF, DTF y Bordado, o DTF y DTF).');
+      if (position === area1Pos) {
+        setSelectedPosition(position);
+        return;
+      }
+      if (position === area2Pos) {
+        setSelectedPosition(position);
         return;
       }
 
-      const updatedPositions = { ...ropaConfig.positions };
-      if (isCurrentlyActive) {
-        updatedPositions[position] = { ...updatedPositions[position], active: false };
+      // Hotspot clicked is not active yet
+      if (area2Pos === null) {
+        setArea2Pos(position);
+        setSelectedPosition(position);
       } else {
-        updatedPositions[position] = {
-          active: true,
-          type: 'DTF',
-          size: '10x10',
-          file: null,
-          filePreview: ''
-        };
+        alert('Solo es posible personalizar un máximo de 2 áreas por prenda. Quita el área secundaria actual si deseas elegir una nueva.');
       }
-      setRopaConfig({ ...ropaConfig, positions: updatedPositions });
     } else if (activeProduct === 'gorras') {
       if (capConfig.option === 'Bordado Al frente') {
-        alert('En esta opción, solo puedes bordar en el frente.');
+        setSelectedPosition('Enfrente');
       } else if (capConfig.option === 'Bordado Al frente y un costado') {
         if (position === 'Enfrente') {
-          alert('El bordado al frente es requerido en este paquete.');
-          return;
+          setSelectedPosition('Enfrente');
+        } else {
+          // Sync active state to the clicked side
+          const updatedPositions = { ...capConfig.positions };
+          updatedPositions['Lado izquierdo'].active = (position === 'Lado izquierdo');
+          updatedPositions['Lado Derecho'].active = (position === 'Lado Derecho');
+          setCapConfig({ ...capConfig, positions: updatedPositions });
+          setSelectedPosition(position);
         }
-        const updatedPositions = { ...capConfig.positions };
-        if (position === 'Lado izquierdo') {
-          updatedPositions['Lado izquierdo'].active = true;
-          updatedPositions['Lado Derecho'].active = false;
-        } else if (position === 'Lado Derecho') {
-          updatedPositions['Lado izquierdo'].active = false;
-          updatedPositions['Lado Derecho'].active = true;
-        }
-        setCapConfig({ ...capConfig, positions: updatedPositions });
       } else if (capConfig.option === 'Bordado Al frente y ambos costados') {
-        alert('En esta opción, se personalizan el frente y ambos costados de forma predeterminada.');
+        setSelectedPosition(position);
       }
     }
   };
 
-  // Helper updates for active positions
+  // Helper updates for position parameters
   const updateGarmentPositionField = (posName: string, field: keyof GarmentPosition, value: any) => {
     const updatedPositions = { ...ropaConfig.positions };
     updatedPositions[posName] = {
@@ -186,12 +226,11 @@ export const App: React.FC = () => {
     setCapConfig({ ...capConfig, positions: updatedPositions });
   };
 
-  // Image Upload handler inside main coordinator
+  // File upload logic with validation
   const handlePositionFileUpload = (posName: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Check size limit: 10MB
     const maxSize = 10 * 1024 * 1024;
     if (file.size > maxSize) {
       alert(`El archivo es demasiado grande. El límite es de 10 MB. Tu archivo pesa ${(file.size / (1024 * 1024)).toFixed(2)} MB.`);
@@ -199,7 +238,6 @@ export const App: React.FC = () => {
       return;
     }
 
-    // Check file format
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
     if (!allowedTypes.includes(file.type)) {
       alert('Solo se permiten archivos de imagen en formato JPEG, JPG o PNG.');
@@ -207,7 +245,6 @@ export const App: React.FC = () => {
       return;
     }
 
-    // Convert file to base64 preview
     const reader = new FileReader();
     reader.onloadend = () => {
       if (activeProduct === 'ropa') {
@@ -261,14 +298,13 @@ export const App: React.FC = () => {
     }
   };
 
-  // Action: Send WhatsApp (Runs download zip asynchronously and launches WhatsApp immediately synchronously to avoid browser block!)
+  // Action: Send WhatsApp (Bypasses popup blocker by starting ZIP generation asynchronously)
   const handleWhatsAppQuote = () => {
     if (!validateForm('whatsapp')) {
       triggerSubmitShake();
       return;
     }
 
-    // Auto-generate and download ZIP file concurrently (without await to bypass popup blocking)
     try {
       const doc = generateQuotePDF(
         clientDetails,
@@ -290,7 +326,7 @@ export const App: React.FC = () => {
       console.error('Error auto-generating ZIP for WhatsApp:', err);
     }
 
-    const number = '526622455087'; // Updated destination phone number
+    const number = '526622455087';
     
     let summaryText = '';
     if (activeProduct === 'ropa') {
@@ -325,6 +361,319 @@ export const App: React.FC = () => {
     setTimeout(() => setIsSubmitShaking(false), 500);
   };
 
+  // Helper panel inputs layout for Ropa positions
+  const renderRopaPositionForm = (posName: string, slotTitle: string, isOptional: boolean, onRemove?: () => void) => {
+    const pos = ropaConfig.positions[posName];
+    if (!pos) return null;
+
+    const otherPos = posName === area1Pos ? area2Pos : area1Pos;
+    const selectOptions = availableGarmentPositions.filter(p => p !== otherPos);
+
+    const handleSelectPosition = (newPos: string) => {
+      if (posName === area1Pos) {
+        // Move current details to the new key in the state
+        const updated = { ...ropaConfig.positions };
+        updated[newPos] = {
+          ...updated[newPos],
+          type: pos.type,
+          size: pos.size,
+          file: pos.file,
+          filePreview: pos.filePreview,
+          active: true
+        };
+        if (newPos !== posName) {
+          updated[posName] = { ...updated[posName], active: false };
+        }
+        setRopaConfig({ ...ropaConfig, positions: updated });
+        setArea1Pos(newPos);
+        setSelectedPosition(newPos);
+      } else {
+        const updated = { ...ropaConfig.positions };
+        updated[newPos] = {
+          ...updated[newPos],
+          type: pos.type,
+          size: pos.size,
+          file: pos.file,
+          filePreview: pos.filePreview,
+          active: true
+        };
+        if (newPos !== posName) {
+          updated[posName] = { ...updated[posName], active: false };
+        }
+        setRopaConfig({ ...ropaConfig, positions: updated });
+        setArea2Pos(newPos);
+        setSelectedPosition(newPos);
+      }
+    };
+
+    const isSelected = selectedPosition === posName;
+
+    return (
+      <div 
+        onClick={() => setSelectedPosition(posName)}
+        className={`p-3 mb-3 border rounded transition bg-white ${isSelected ? 'border-danger shadow-sm' : 'border-light-subtle'}`}
+        style={{ cursor: 'pointer' }}
+      >
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <div className="d-flex align-items-center gap-2">
+            <span className={`badge ${isSelected ? 'bg-danger' : 'bg-secondary'} rounded-pill`}>
+              {slotTitle}
+            </span>
+            <select
+              className="form-select form-select-sm border-0 bg-transparent fw-bold text-dark font-display fs-5"
+              value={posName}
+              onChange={(e) => handleSelectPosition(e.target.value)}
+              style={{ width: 'auto', cursor: 'pointer', paddingRight: '30px' }}
+            >
+              {selectOptions.map(opt => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+          </div>
+          {isOptional && onRemove && (
+            <button 
+              type="button" 
+              className="btn btn-sm btn-outline-danger" 
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemove();
+              }}
+            >
+              <i className="bi bi-trash-fill me-1"></i> Quitar Segunda Área
+            </button>
+          )}
+        </div>
+
+        <div className="row g-3" onClick={(e) => e.stopPropagation()}>
+          {/* Técnica */}
+          <div className="col-12 col-sm-6">
+            <label className="form-label text-muted small uppercase fw-bold">Técnica:</label>
+            <select
+              className="form-select"
+              value={pos.type}
+              onChange={(e) => updateGarmentPositionField(posName, 'type', e.target.value as any)}
+            >
+              <option value="DTF">DTF (Estampado digital a todo color)</option>
+              <option value="Bordado">Bordado</option>
+            </select>
+          </div>
+
+          {/* Medidas */}
+          <div className="col-12 col-sm-6">
+            <label className="form-label text-muted small uppercase fw-bold">Medida aprox. en CM (Ej. 10x10):</label>
+            <input
+              type="text"
+              className="form-control"
+              value={pos.size}
+              onChange={(e) => updateGarmentPositionField(posName, 'size', e.target.value)}
+              placeholder="Ancho x Alto en CM"
+            />
+          </div>
+
+          {/* Archivos */}
+          <div className="col-12">
+            <label className="form-label text-muted small uppercase fw-bold">Diseño de Referencia (Máx. 10MB, JPEG/PNG):</label>
+            {!pos.filePreview ? (
+              <div className="border border-secondary border-dashed p-3 rounded text-center bg-light">
+                <input
+                  type="file"
+                  id={`file-ropa-${posName}`}
+                  className="d-none"
+                  accept=".jpeg,.jpg,.png"
+                  onChange={(e) => handlePositionFileUpload(posName, e)}
+                />
+                <label htmlFor={`file-ropa-${posName}`} className="m-0 cursor-pointer text-primary-brand font-display fs-5">
+                  <i className="bi bi-cloud-arrow-up-fill me-2 fs-4"></i>
+                  Subir Archivo
+                </label>
+              </div>
+            ) : (
+              <div className="d-flex align-items-center gap-3 p-2 bg-light rounded border border-light-subtle">
+                <img 
+                  src={pos.filePreview} 
+                  alt="preview" 
+                  className="object-fit-cover rounded border border-secondary bg-white"
+                  style={{ width: '60px', height: '60px' }}
+                />
+                <div className="flex-grow-1 overflow-hidden">
+                  <p className="small m-0 text-truncate text-dark fw-bold">{pos.file?.name}</p>
+                  <p className="small m-0 text-muted">{(pos.file!.size / (1024 * 1024)).toFixed(2)} MB</p>
+                </div>
+                <button 
+                  type="button" 
+                  className="btn btn-outline-danger btn-sm"
+                  onClick={() => removePositionFile(posName)}
+                >
+                  <i className="bi bi-trash"></i>
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Helper panel inputs layout for Cap positions
+  const renderGorraPositionForm = (posName: string, isRequired: boolean) => {
+    const pos = capConfig.positions[posName];
+    if (!pos) return null;
+
+    const isSelected = selectedPosition === posName;
+
+    return (
+      <div 
+        onClick={() => setSelectedPosition(posName)}
+        className={`p-3 mb-3 border rounded transition bg-white ${isSelected ? 'border-danger shadow-sm' : 'border-light-subtle'}`}
+        style={{ cursor: 'pointer' }}
+      >
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <span className={`badge ${isSelected ? 'bg-danger' : 'bg-secondary'} rounded-pill`}>
+            Posición: {posName}
+          </span>
+          {isRequired && (
+            <span className="text-muted small italic">* Requerido en este paquete</span>
+          )}
+        </div>
+
+        <div className="row g-3" onClick={(e) => e.stopPropagation()}>
+          {/* Técnica */}
+          <div className="col-12 col-sm-6">
+            <label className="form-label text-muted small uppercase fw-bold">Técnica:</label>
+            <select
+              className="form-select"
+              value={pos.type}
+              onChange={(e) => updateCapPositionField(posName, 'type', e.target.value as any)}
+            >
+              <option value="Bordado">Bordado</option>
+              <option value="TPU">TPU (Vinil Textil para detalles pequeños)</option>
+            </select>
+          </div>
+
+          {/* Tamaño Recomendado */}
+          <div className="col-12 col-sm-6">
+            <label className="form-label text-muted small uppercase fw-bold">Tamaño Recomendado:</label>
+            <select
+              className="form-select"
+              value={pos.size}
+              onChange={(e) => updateCapPositionField(posName, 'size', e.target.value as any)}
+            >
+              <option value="Pequeño">Pequeño (Discreto)</option>
+              <option value="Regular">Regular (Normal)</option>
+              <option value="Grande">Grande (Llamativo)</option>
+            </select>
+          </div>
+
+          {/* Subir archivo */}
+          <div className="col-12">
+            <label className="form-label text-muted small uppercase fw-bold">Diseño de Referencia (Máx. 10MB, JPEG/PNG):</label>
+            {!pos.filePreview ? (
+              <div className="border border-secondary border-dashed p-3 rounded text-center bg-light">
+                <input
+                  type="file"
+                  id={`file-cap-${posName}`}
+                  className="d-none"
+                  accept=".jpeg,.jpg,.png"
+                  onChange={(e) => handlePositionFileUpload(posName, e)}
+                />
+                <label htmlFor={`file-cap-${posName}`} className="m-0 cursor-pointer text-primary-brand font-display fs-5">
+                  <i className="bi bi-cloud-arrow-up-fill me-2 fs-4"></i>
+                  Subir Archivo
+                </label>
+              </div>
+            ) : (
+              <div className="d-flex align-items-center gap-3 p-2 bg-light rounded border border-light-subtle">
+                <img 
+                  src={pos.filePreview} 
+                  alt="preview" 
+                  className="object-fit-cover rounded border border-secondary bg-white"
+                  style={{ width: '60px', height: '60px' }}
+                />
+                <div className="flex-grow-1 overflow-hidden">
+                  <p className="small m-0 text-truncate text-dark fw-bold">{pos.file?.name}</p>
+                  <p className="small m-0 text-muted">{(pos.file!.size / (1024 * 1024)).toFixed(2)} MB</p>
+                </div>
+                <button 
+                  type="button" 
+                  className="btn btn-outline-danger btn-sm"
+                  onClick={() => removePositionFile(posName)}
+                >
+                  <i className="bi bi-trash"></i>
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Main customizer section renderer
+  const renderActivePositionsPanel = () => {
+    if (activeProduct === 'parches') return null;
+
+    return (
+      <div className="custom-card mb-4 bg-white border border-light-subtle">
+        <h3 className="font-display text-primary-brand mb-1">
+          <i className="bi bi-gear-wide-connected me-2"></i>
+          Áreas de Personalización Activas
+        </h3>
+        <p className="text-muted small mb-4">
+          A continuación, configura las técnicas, medidas y diseños para las posiciones seleccionadas.
+        </p>
+
+        {activeProduct === 'ropa' ? (
+          <div>
+            {/* AREA 1 (Primary Customization) */}
+            {renderRopaPositionForm(area1Pos, 'Área 1', false)}
+
+            {/* AREA 2 (Secondary Optional Customization) */}
+            {area2Pos !== null ? (
+              renderRopaPositionForm(area2Pos, 'Área 2 (Opcional)', true, () => {
+                setArea2Pos(null);
+                setSelectedPosition(area1Pos);
+              })
+            ) : (
+              <div className="text-center py-2 mt-2 border border-dashed rounded bg-light border-secondary">
+                <button
+                  type="button"
+                  className="btn btn-outline-danger font-display px-4 py-2 border-primary-brand text-primary-brand bg-white"
+                  onClick={() => {
+                    const firstAvailable = availableGarmentPositions.find(p => p !== area1Pos) || 'Espalda';
+                    setArea2Pos(firstAvailable);
+                    setSelectedPosition(firstAvailable);
+                  }}
+                >
+                  <i className="bi bi-plus-circle-fill me-2"></i>
+                  Añadir una Segunda Área de Personalizado
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div>
+            {/* Cap configuration render */}
+            {renderGorraPositionForm('Enfrente', true)}
+
+            {capConfig.option === 'Bordado Al frente y un costado' && (
+              <div>
+                {capConfig.positions['Lado izquierdo'].active && renderGorraPositionForm('Lado izquierdo', false)}
+                {capConfig.positions['Lado Derecho'].active && renderGorraPositionForm('Lado Derecho', false)}
+              </div>
+            )}
+
+            {capConfig.option === 'Bordado Al frente y ambos costados' && (
+              <div>
+                {renderGorraPositionForm('Lado izquierdo', false)}
+                {renderGorraPositionForm('Lado Derecho', false)}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const getActivePositionsArray = (): string[] => {
     if (activeProduct === 'ropa') {
       return Object.entries(ropaConfig.positions)
@@ -336,171 +685,6 @@ export const App: React.FC = () => {
         .map(([name]) => name);
     }
     return [];
-  };
-
-  // Render individual position configuration sub-form immediately below visualizer
-  const renderActivePositionEditor = () => {
-    if (activeProduct === 'parches' || !selectedPosition) return null;
-
-    let isActive = false;
-    let technique = 'Bordado';
-    let sizeValue = '';
-    let previewUrl = '';
-    let uploadedFile: File | null = null;
-
-    if (activeProduct === 'ropa') {
-      const pos = ropaConfig.positions[selectedPosition];
-      isActive = !!pos?.active;
-      technique = pos?.type || 'DTF';
-      sizeValue = pos?.size || '';
-      previewUrl = pos?.filePreview || '';
-      uploadedFile = pos?.file || null;
-    } else if (activeProduct === 'gorras') {
-      const pos = capConfig.positions[selectedPosition];
-      isActive = !!pos?.active;
-      technique = pos?.type || 'Bordado';
-      sizeValue = pos?.size || 'Regular';
-      previewUrl = pos?.filePreview || '';
-      uploadedFile = pos?.file || null;
-    }
-
-    return (
-      <div className="custom-card mb-4 bg-white border border-danger border-opacity-25" style={{ scrollMarginTop: '20px' }}>
-        <div className="d-flex justify-content-between align-items-center mb-3">
-          <h4 className="font-display text-primary-brand m-0 fs-4">
-            <i className="bi bi-gear-wide-connected me-2"></i>
-            Configurar Área: <span className="text-dark">{selectedPosition}</span>
-          </h4>
-          <div className="form-check form-switch m-0">
-            <input
-              className="form-check-input"
-              type="checkbox"
-              id="activate-position-switch"
-              checked={isActive}
-              onChange={() => handlePositionToggle(selectedPosition)}
-              style={{ cursor: 'pointer', scale: '1.2' }}
-            />
-            <label className="form-check-label text-muted small ms-2" htmlFor="activate-position-switch" style={{ cursor: 'pointer' }}>
-              {isActive ? 'Área Activa' : 'Área Inactiva'}
-            </label>
-          </div>
-        </div>
-
-        {isActive ? (
-          <div className="row g-3 animate-fade-in">
-            {/* 1. Técnica */}
-            <div className="col-12 col-sm-6">
-              <label className="form-label text-muted small uppercase fw-bold">Técnica de Personalizado:</label>
-              {activeProduct === 'ropa' ? (
-                <select
-                  className="form-select"
-                  value={technique}
-                  onChange={(e) => updateGarmentPositionField(selectedPosition, 'type', e.target.value)}
-                >
-                  <option value="DTF">DTF (Estampado digital a todo color)</option>
-                  <option value="Bordado">Bordado</option>
-                </select>
-              ) : (
-                <select
-                  className="form-select"
-                  value={technique}
-                  onChange={(e) => updateCapPositionField(selectedPosition, 'type', e.target.value)}
-                >
-                  <option value="Bordado">Bordado</option>
-                  <option value="TPU">TPU (Vinil Textil para detalles pequeños)</option>
-                </select>
-              )}
-            </div>
-
-            {/* 2. Medidas / Tamaños */}
-            <div className="col-12 col-sm-6">
-              <label className="form-label text-muted small uppercase fw-bold">Medidas Estimadas:</label>
-              {activeProduct === 'ropa' ? (
-                <div className="input-group">
-                  <input
-                    type="text"
-                    className="form-control"
-                    value={sizeValue}
-                    onChange={(e) => updateGarmentPositionField(selectedPosition, 'size', e.target.value)}
-                    placeholder="Ej. 10x10 en CM"
-                  />
-                  <span className="input-group-text bg-light text-muted border-light-subtle">cm</span>
-                </div>
-              ) : (
-                <select
-                  className="form-select"
-                  value={sizeValue}
-                  onChange={(e) => updateCapPositionField(selectedPosition, 'size', e.target.value)}
-                >
-                  <option value="Pequeño">Pequeño (Discreto)</option>
-                  <option value="Regular">Regular (Normal)</option>
-                  <option value="Grande">Grande (Llamativo)</option>
-                </select>
-              )}
-            </div>
-
-            {/* 3. Cargar Archivos de Referencia */}
-            <div className="col-12 mt-3">
-              <label className="form-label text-muted small uppercase fw-bold">Subir Diseño de Referencia (Máx. 10MB, JPG/PNG):</label>
-              
-              {!previewUrl ? (
-                <div className="border border-secondary border-dashed p-4 rounded text-center bg-light">
-                  <input
-                    type="file"
-                    id={`file-upload-coord-${selectedPosition}`}
-                    className="d-none"
-                    accept=".jpeg,.jpg,.png"
-                    onChange={(e) => handlePositionFileUpload(selectedPosition, e)}
-                  />
-                  <label htmlFor={`file-upload-coord-${selectedPosition}`} className="m-0 cursor-pointer text-primary-brand font-display fs-5">
-                    <i className="bi bi-cloud-arrow-up-fill me-2 fs-4"></i>
-                    Seleccionar Archivo de Referencia
-                  </label>
-                  <p className="text-muted small m-0 mt-1">
-                    El archivo se renombrará automáticamente a: <strong>{activeProduct}_{selectedPosition.toLowerCase().replace(/\s+/g, '-')}.jpg/png</strong>
-                  </p>
-                </div>
-              ) : (
-                <div className="d-flex align-items-center gap-3 p-3 bg-light rounded border border-light-subtle">
-                  <img 
-                    src={previewUrl} 
-                    alt="preview" 
-                    className="object-fit-cover rounded border border-secondary bg-white"
-                    style={{ width: '80px', height: '80px' }}
-                  />
-                  <div className="flex-grow-1 overflow-hidden">
-                    <p className="small m-0 text-truncate text-dark fw-bold">{uploadedFile?.name}</p>
-                    <p className="small m-0 text-muted">{(uploadedFile!.size / (1024 * 1024)).toFixed(2)} MB</p>
-                  </div>
-                  <button 
-                    type="button" 
-                    className="btn btn-outline-danger"
-                    onClick={() => removePositionFile(selectedPosition)}
-                  >
-                    <i className="bi bi-trash me-2"></i>Eliminar Diseño
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div className="text-center p-4 bg-light rounded border border-dashed border-secondary">
-            <p className="text-muted mb-3 fs-6">
-              El área <strong>"{selectedPosition}"</strong> está actualmente inactiva. 
-              Actívala para agregar tu diseño y técnica correspondientes.
-            </p>
-            <button
-              type="button"
-              className="btn btn-danger font-display px-4 py-2 text-white border-0 bg-primary"
-              onClick={() => handlePositionToggle(selectedPosition)}
-            >
-              <i className="bi bi-plus-circle-fill me-2"></i>
-              Activar {selectedPosition}
-            </button>
-          </div>
-        )}
-      </div>
-    );
   };
 
   return (
@@ -516,7 +700,7 @@ export const App: React.FC = () => {
           </div>
           <div>
             <span className="badge bg-danger rounded-pill px-3 py-2 font-display fs-6 tracking-wide">
-              MÓDULO DE COTIZACIÓN V1.2
+              MÓDULO DE COTIZACIÓN V1.3
             </span>
           </div>
         </div>
@@ -570,10 +754,10 @@ export const App: React.FC = () => {
               patchShape={patchConfig.shape}
             />
 
-            {/* PANEL DE CONFIGURACIÓN DE ÁREA INMEDIATAMENTE ABAJO */}
-            {renderActivePositionEditor()}
+            {/* AREAS DE PERSONALIZACION ACTIVAS EDITORES */}
+            {renderActivePositionsPanel()}
 
-            {/* FORMULARIO ESPECÍFICO DE CONFIGURACIÓN GENERAL */}
+            {/* CONFIGURACION GENERAL POR PRODUCTO */}
             {activeProduct === 'ropa' && (
               <RopaConfig config={ropaConfig} onChange={setRopaConfig} />
             )}

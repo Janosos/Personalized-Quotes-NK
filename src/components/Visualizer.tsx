@@ -23,9 +23,7 @@ export const Visualizer: React.FC<VisualizerProps> = ({
 
   const handleZoneClick = (pos: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!isPositionActive(pos)) {
-      onPositionToggle(pos);
-    }
+    onPositionToggle(pos);
     onSelectPositionForEditing(pos);
   };
 
@@ -35,23 +33,23 @@ export const Visualizer: React.FC<VisualizerProps> = ({
     
     if (editing) {
       return {
-        fill: 'rgba(255, 51, 51, 0.18)',
+        fill: 'rgba(255, 51, 51, 0.22)',
         stroke: '#FF3333',
         strokeWidth: 2,
-        strokeDasharray: '2 2',
+        strokeDasharray: '3 2',
         cursor: 'pointer'
       };
     } else if (active) {
       return {
-        fill: 'rgba(255, 51, 51, 0.05)',
-        stroke: 'rgba(255, 51, 51, 0.4)',
-        strokeWidth: 1.2,
+        fill: 'rgba(255, 51, 51, 0.08)',
+        stroke: 'rgba(255, 51, 51, 0.5)',
+        strokeWidth: 1.5,
         cursor: 'pointer'
       };
     } else {
       return {
         fill: 'transparent',
-        stroke: 'rgba(255, 255, 255, 0.1)',
+        stroke: 'rgba(0, 0, 0, 0.08)',
         strokeWidth: 0.8,
         cursor: 'pointer'
       };
@@ -59,43 +57,51 @@ export const Visualizer: React.FC<VisualizerProps> = ({
   };
 
   const renderRopaVisualizer = () => {
+    // Beautiful curved shirt silhouette paths
+    const shirtFrontPath = "M 40 16 Q 50 23 60 16 L 74 21 L 88 36 L 80 46 L 71 38 L 71 88 Q 50 92 29 88 L 29 38 L 20 46 L 12 36 L 26 21 Z";
+    const shirtBackPath = "M 40 16 Q 50 19 60 16 L 74 21 L 88 36 L 80 46 L 71 38 L 71 88 Q 50 92 29 88 L 29 38 L 20 46 L 12 36 L 26 21 Z";
+
     return (
       <div className="row g-4 justify-content-center text-center">
         {/* VISTA FRONTAL */}
         <div className="col-12 col-md-6">
           <h5 className="text-muted mb-2 font-display">VISTA FRONTAL (Haga clic en una zona para configurar)</h5>
           <div className="position-relative d-inline-block mx-auto bg-white border border-light-subtle p-3 rounded" style={{ maxWidth: '280px', width: '100%' }}>
-            <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.2" className="text-dark w-100" style={{ height: '240px' }}>
-              {/* Outline de Camiseta */}
-              <path d="M15 15 L25 5 L35 15 L35 25 L45 28 L55 28 L65 25 L65 15 L75 5 L85 15 L80 35 L75 35 L75 90 L25 90 L25 35 L20 35 Z" stroke="#64748B" />
-              <path d="M42 20 Q50 25 58 20" stroke="#64748B" />
+            <svg viewBox="0 0 100 100" className="w-100" style={{ height: '240px' }}>
+              {/* Shirt Outline */}
+              <path d={shirtFrontPath} fill="#F8FAFC" stroke="#64748B" strokeWidth="1.5" />
+              {/* Collar Line */}
+              <path d="M 40 16 Q 50 24 60 16" fill="none" stroke="#475569" strokeWidth="1.2" />
+              {/* Sleeve stitch guidelines */}
+              <path d="M 29 38 L 20 46" fill="none" stroke="#94A3B8" strokeWidth="0.8" strokeDasharray="1 1" />
+              <path d="M 71 38 L 80 46" fill="none" stroke="#94A3B8" strokeWidth="0.8" strokeDasharray="1 1" />
 
-              {/* Clickable Zones Overlay */}
+              {/* Clickable Overlay Zones */}
               {/* Pecho Izquierdo */}
-              <rect x="32" y="27" width="11" height="11" rx="1.5" {...getZoneStyles('Pecho Izquierdo')} onClick={(e) => handleZoneClick('Pecho Izquierdo', e)} />
+              <rect x="33" y="27" width="11" height="11" rx="2" {...getZoneStyles('Pecho Izquierdo')} onClick={(e) => handleZoneClick('Pecho Izquierdo', e)} />
               
               {/* Pecho Derecho */}
-              <rect x="57" y="27" width="11" height="11" rx="1.5" {...getZoneStyles('Pecho Derecho')} onClick={(e) => handleZoneClick('Pecho Derecho', e)} />
+              <rect x="56" y="27" width="11" height="11" rx="2" {...getZoneStyles('Pecho Derecho')} onClick={(e) => handleZoneClick('Pecho Derecho', e)} />
               
               {/* Pecho en Medio */}
-              <rect x="45" y="29" width="10" height="9" rx="1.5" {...getZoneStyles('Pecho en Medio')} onClick={(e) => handleZoneClick('Pecho en Medio', e)} />
+              <rect x="45" y="29" width="10" height="9" rx="2" {...getZoneStyles('Pecho en Medio')} onClick={(e) => handleZoneClick('Pecho en Medio', e)} />
               
               {/* Frente Completo */}
-              <rect x="32" y="44" width="36" height="32" rx="2" {...getZoneStyles('Enfrente')} onClick={(e) => handleZoneClick('Enfrente', e)} />
+              <rect x="31" y="44" width="38" height="34" rx="3" {...getZoneStyles('Enfrente')} onClick={(e) => handleZoneClick('Enfrente', e)} />
               
               {/* Manga Izquierda */}
-              <path d="M15 15 L25 5 L35 15 L32 23 L20 23 Z" {...getZoneStyles('Manga Izquierda')} onClick={(e) => handleZoneClick('Manga Izquierda', e)} />
+              <path d="M 26 21 L 12 36 L 20 46 L 29 38 Z" {...getZoneStyles('Manga Izquierda')} onClick={(e) => handleZoneClick('Manga Izquierda', e)} />
               
               {/* Manga Derecha */}
-              <path d="M85 15 L75 5 L65 15 L68 23 L80 23 Z" {...getZoneStyles('Manga Derecha')} onClick={(e) => handleZoneClick('Manga Derecha', e)} />
+              <path d="M 74 21 L 88 36 L 80 46 L 71 38 Z" {...getZoneStyles('Manga Derecha')} onClick={(e) => handleZoneClick('Manga Derecha', e)} />
             </svg>
 
             {/* Hotspots */}
-            <div className="hotspot-container" style={{ top: '32.5%', left: '37.5%' }}>
+            <div className="hotspot-container" style={{ top: '32.5%', left: '38.5%' }}>
               <div className={`hotspot-dot ${isPositionActive('Pecho Izquierdo') ? 'active' : ''} ${isPositionEditing('Pecho Izquierdo') ? 'bg-white' : ''}`} onClick={(e) => handleZoneClick('Pecho Izquierdo', e)} />
               <div className="hotspot-label">Pecho Izquierdo</div>
             </div>
-            <div className="hotspot-container" style={{ top: '32.5%', left: '62.5%' }}>
+            <div className="hotspot-container" style={{ top: '32.5%', left: '61.5%' }}>
               <div className={`hotspot-dot ${isPositionActive('Pecho Derecho') ? 'active' : ''} ${isPositionEditing('Pecho Derecho') ? 'bg-white' : ''}`} onClick={(e) => handleZoneClick('Pecho Derecho', e)} />
               <div className="hotspot-label">Pecho Derecho</div>
             </div>
@@ -103,15 +109,15 @@ export const Visualizer: React.FC<VisualizerProps> = ({
               <div className={`hotspot-dot ${isPositionActive('Pecho en Medio') ? 'active' : ''} ${isPositionEditing('Pecho en Medio') ? 'bg-white' : ''}`} onClick={(e) => handleZoneClick('Pecho en Medio', e)} />
               <div className="hotspot-label">Pecho en Medio</div>
             </div>
-            <div className="hotspot-container" style={{ top: '60%', left: '50%' }}>
+            <div className="hotspot-container" style={{ top: '61%', left: '50%' }}>
               <div className={`hotspot-dot ${isPositionActive('Enfrente') ? 'active' : ''} ${isPositionEditing('Enfrente') ? 'bg-white' : ''}`} onClick={(e) => handleZoneClick('Enfrente', e)} />
               <div className="hotspot-label">Frente Completo</div>
             </div>
-            <div className="hotspot-container" style={{ top: '15%', left: '23%' }}>
+            <div className="hotspot-container" style={{ top: '23%', left: '19%' }}>
               <div className={`hotspot-dot ${isPositionActive('Manga Izquierda') ? 'active' : ''} ${isPositionEditing('Manga Izquierda') ? 'bg-white' : ''}`} onClick={(e) => handleZoneClick('Manga Izquierda', e)} />
               <div className="hotspot-label">Manga Izquierda</div>
             </div>
-            <div className="hotspot-container" style={{ top: '15%', left: '77%' }}>
+            <div className="hotspot-container" style={{ top: '23%', left: '81%' }}>
               <div className={`hotspot-dot ${isPositionActive('Manga Derecha') ? 'active' : ''} ${isPositionEditing('Manga Derecha') ? 'bg-white' : ''}`} onClick={(e) => handleZoneClick('Manga Derecha', e)} />
               <div className="hotspot-label">Manga Derecha</div>
             </div>
@@ -122,16 +128,21 @@ export const Visualizer: React.FC<VisualizerProps> = ({
         <div className="col-12 col-md-6">
           <h5 className="text-muted mb-2 font-display">VISTA POSTERIOR (Haga clic en una zona para configurar)</h5>
           <div className="position-relative d-inline-block mx-auto bg-white border border-light-subtle p-3 rounded" style={{ maxWidth: '280px', width: '100%' }}>
-            <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.2" className="text-dark w-100" style={{ height: '240px' }}>
-              <path d="M15 15 L25 5 L35 15 L35 25 L45 28 L55 28 L65 25 L65 15 L75 5 L85 15 L80 35 L75 35 L75 90 L25 90 L25 35 L20 35 Z" stroke="#64748B" />
-              <path d="M42 20 Q50 18 58 20" stroke="#64748B" />
+            <svg viewBox="0 0 100 100" className="w-100" style={{ height: '240px' }}>
+              {/* Shirt Outline Back */}
+              <path d={shirtBackPath} fill="#F8FAFC" stroke="#64748B" strokeWidth="1.5" />
+              {/* Collar Line Back */}
+              <path d="M 40 16 Q 50 18 60 16" fill="none" stroke="#475569" strokeWidth="1.2" />
+              {/* Sleeve stitching */}
+              <path d="M 29 38 L 20 46" fill="none" stroke="#94A3B8" strokeWidth="0.8" strokeDasharray="1 1" />
+              <path d="M 71 38 L 80 46" fill="none" stroke="#94A3B8" strokeWidth="0.8" strokeDasharray="1 1" />
 
               {/* Clickable Zone Espalda */}
-              <rect x="28" y="28" width="44" height="44" rx="2" {...getZoneStyles('Espalda')} onClick={(e) => handleZoneClick('Espalda', e)} />
+              <rect x="28" y="28" width="44" height="50" rx="3" {...getZoneStyles('Espalda')} onClick={(e) => handleZoneClick('Espalda', e)} />
             </svg>
 
             {/* Hotspots */}
-            <div className="hotspot-container" style={{ top: '50%', left: '50%' }}>
+            <div className="hotspot-container" style={{ top: '53%', left: '50%' }}>
               <div className={`hotspot-dot ${isPositionActive('Espalda') ? 'active' : ''} ${isPositionEditing('Espalda') ? 'bg-white' : ''}`} onClick={(e) => handleZoneClick('Espalda', e)} />
               <div className="hotspot-label">Espalda</div>
             </div>
@@ -153,7 +164,6 @@ export const Visualizer: React.FC<VisualizerProps> = ({
               <path d="M8 72 Q50 85 92 72 Q85 62 15 62 Z" stroke="#64748B" />
               <circle cx="50" cy="23" r="3" stroke="#64748B" />
 
-              {/* Clickable Overlay Enfrente */}
               <path d="M30 35 Q50 28 70 35 Q78 50 78 60 Q50 63 22 60 Q22 50 30 35 Z" {...getZoneStyles('Enfrente')} onClick={(e) => handleZoneClick('Enfrente', e)} />
             </svg>
 
@@ -173,10 +183,7 @@ export const Visualizer: React.FC<VisualizerProps> = ({
               <path d="M90 70 Q60 78 15 70 Q10 88 5 90" stroke="#64748B" />
               <path d="M85 72 L95 76 L90 85 Q75 80 85 72 Z" stroke="#64748B" />
 
-              {/* Clickable Overlay Costado Izquierdo */}
               <rect x="22" y="44" width="22" height="20" rx="3" {...getZoneStyles('Lado izquierdo')} onClick={(e) => handleZoneClick('Lado izquierdo', e)} />
-              
-              {/* Clickable Overlay Costado Derecho */}
               <rect x="56" y="44" width="22" height="20" rx="3" {...getZoneStyles('Lado Derecho')} onClick={(e) => handleZoneClick('Lado Derecho', e)} />
             </svg>
 
@@ -242,7 +249,7 @@ export const Visualizer: React.FC<VisualizerProps> = ({
       <p className="text-muted small mb-4">
         {productType === 'parches' 
           ? 'Visualiza la forma y proporción del contorno para tu parche bordado.' 
-          : 'Haz clic en las distintas partes del producto o en los puntos rojos para activarlas y editarlas directamente abajo.'}
+          : 'Haz clic directamente sobre la camiseta o gorra para seleccionar y activar esa sección de diseño.'}
       </p>
 
       {productType === 'ropa' && renderRopaVisualizer()}
