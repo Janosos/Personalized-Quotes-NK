@@ -6,7 +6,6 @@ import { GorrasConfig } from './components/GorrasConfig';
 import { Visualizer } from './components/Visualizer';
 import { Marquee } from './components/Marquee';
 import { generateQuotePDF } from './utils/pdfGenerator';
-import { generateQuoteZIP } from './utils/zipGenerator';
 
 const availableGarmentPositions = [
   'Pecho Izquierdo',
@@ -253,8 +252,8 @@ export const App: React.FC = () => {
     }
   };
 
-  // Action: Generate PDF & ZIP
-  const handleDownloadQuote = async () => {
+  // Action: Generate and save PDF directly (synchronously to bypass sandboxing blocks!)
+  const handleDownloadQuote = () => {
     if (!validateForm()) {
       triggerSubmitShake();
       return;
@@ -269,21 +268,22 @@ export const App: React.FC = () => {
         capConfig
       );
 
-      await generateQuoteZIP(
-        clientDetails.name,
-        doc,
-        activeProduct,
-        ropaConfig,
-        patchConfig,
-        capConfig
-      );
+      const sanitizedClientName = clientDetails.name
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9_-]/g, '');
+      const pdfFilename = `cotizacion_nakama_${sanitizedClientName || 'cliente'}.pdf`;
+      
+      doc.save(pdfFilename);
     } catch (err) {
       console.error(err);
-      alert('Ocurrió un error al generar la cotización en ZIP. Inténtalo de nuevo.');
+      alert('Ocurrió un error al generar la cotización en PDF. Inténtalo de nuevo.');
     }
   };
 
-  // Action: Send WhatsApp (Bypasses popup blocker by starting ZIP generation asynchronously)
+  // Action: Send WhatsApp (Bypasses popup blocker by downloading PDF and launching WhatsApp synchronously!)
   const handleWhatsAppQuote = () => {
     if (!validateForm()) {
       triggerSubmitShake();
@@ -299,16 +299,17 @@ export const App: React.FC = () => {
         capConfig
       );
 
-      generateQuoteZIP(
-        clientDetails.name,
-        doc,
-        activeProduct,
-        ropaConfig,
-        patchConfig,
-        capConfig
-      ).catch(e => console.error("Error generating ZIP:", e));
+      const sanitizedClientName = clientDetails.name
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9_-]/g, '');
+      const pdfFilename = `cotizacion_nakama_${sanitizedClientName || 'cliente'}.pdf`;
+      
+      doc.save(pdfFilename);
     } catch (err) {
-      console.error('Error auto-generating ZIP for WhatsApp:', err);
+      console.error('Error auto-generating PDF for WhatsApp:', err);
     }
 
     const number = '526622455087';
@@ -335,7 +336,7 @@ export const App: React.FC = () => {
       `*Teléfono:* ${clientDetails.phone}\n` +
       `*Email:* ${clientDetails.email || 'N/A'}\n\n` +
       `*Detalle de Producto:*\n${summaryText}\n\n` +
-      `_Se ha descargado automáticamente el archivo ZIP con mi cotización y diseños. Se lo adjunto a continuación en este chat para revisión técnica._`;
+      `_Se ha descargado automáticamente mi cotización en PDF. Se la adjunto a continuación en este chat para revisión técnica._`;
 
     const encoded = encodeURIComponent(message);
     window.open(`https://wa.me/${number}?text=${encoded}`, '_blank');
@@ -927,7 +928,7 @@ export const App: React.FC = () => {
                 {/* WhatsApp Security Alert Note */}
                 <div className="alert alert-info py-2 small mb-3 border-0 bg-light text-dark">
                   <i className="bi bi-info-circle-fill me-2 text-primary-brand"></i>
-                  <strong>Nota de Envío:</strong> Por limitaciones de seguridad de WhatsApp, los navegadores no pueden enviar archivos directamente. Al hacer clic abajo, se descargará automáticamente el ZIP en tu dispositivo y se abrirá el chat para que lo arrastres y envíes.
+                  <strong>Nota de Envío:</strong> Por limitaciones de seguridad de WhatsApp, los navegadores no pueden enviar archivos directamente. Al hacer clic abajo, se descargará automáticamente la cotización en PDF en tu dispositivo y se abrirá el chat para que la adjuntes.
                 </div>
 
                 {/* ACCIONES */}
@@ -937,8 +938,8 @@ export const App: React.FC = () => {
                     className={`btn btn-primary py-3 fs-5 ${isSubmitShaking ? 'btn-shake' : ''}`}
                     onClick={handleDownloadQuote}
                   >
-                    <i className="bi bi-file-earmark-zip-fill me-2"></i>
-                    Descargar Cotización (PDF + ZIP)
+                    <i className="bi bi-file-earmark-pdf-fill me-2"></i>
+                    Descargar Cotización (PDF)
                   </button>
 
                   <button
