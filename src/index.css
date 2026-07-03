@@ -1,0 +1,239 @@
+@import "bootstrap/dist/css/bootstrap.min.css";
+@import "bootstrap-icons/font/bootstrap-icons.css";
+
+:root {
+  --primary-color: #FF3333;
+  --primary-dark: #cc0000;
+  --bg-dark: #0A0A0A;
+  --surface-dark: #141414;
+  --text-light: #F3F4F6;
+  --text-muted: #9CA3AF;
+  --font-display: 'Teko', sans-serif;
+  --font-body: 'Inter', sans-serif;
+}
+
+body {
+  background-color: var(--bg-dark);
+  color: var(--text-light);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+}
+
+/* Custom Display Fonts for headings */
+.font-display {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-dark);
+}
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-color);
+}
+
+/* Marquee Styles */
+.marquee-container {
+  background-color: var(--primary-color);
+  color: #000;
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 10px 0;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+.marquee-content {
+  display: inline-block;
+  animation: marquee-anim 25s linear infinite;
+}
+@keyframes marquee-anim {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* Premium Card / Glassmorphism effects */
+.custom-card {
+  background-color: var(--surface-dark);
+  border: 1px solid rgba(255, 51, 51, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  backdrop-filter: blur(4px);
+  padding: 24px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.custom-card:hover {
+  border-color: rgba(255, 51, 51, 0.3);
+  box-shadow: 0 8px 32px 0 rgba(255, 51, 51, 0.05);
+}
+
+/* Inputs & Form styling */
+.form-control, .form-select {
+  background-color: #1a1a1a !important;
+  border: 1px solid #333 !important;
+  color: #fff !important;
+  font-family: var(--font-body);
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+.form-control:focus, .form-select:focus {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 0.25rem rgba(255, 51, 51, 0.25) !important;
+  color: #fff !important;
+}
+
+/* Active tabs / buttons */
+.btn-primary {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-weight: bold;
+}
+.btn-primary:hover, .btn-primary:focus {
+  background-color: var(--primary-dark) !important;
+  border-color: var(--primary-dark) !important;
+}
+
+/* Custom tabs for customizer selection */
+.custom-tab-btn {
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--text-muted);
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  padding: 10px 20px;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
+  letter-spacing: 0.05em;
+}
+.custom-tab-btn:hover {
+  color: var(--text-light);
+}
+.custom-tab-btn.active {
+  color: var(--primary-color);
+  border-bottom-color: var(--primary-color);
+  font-weight: bold;
+}
+
+/* Color swatches */
+.swatch-option {
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  border: 2px solid #333;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s, border-color 0.15s;
+}
+.swatch-option:hover {
+  transform: scale(1.1);
+  border-color: #555;
+}
+.swatch-option.selected {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 8px rgba(255, 51, 51, 0.5);
+  transform: scale(1.15);
+}
+
+/* Position badges */
+.position-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 4px;
+  background-color: #222;
+  border: 1px solid #333;
+  font-size: 0.85rem;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+.position-badge:hover {
+  background-color: #333;
+}
+.position-badge.active {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+  font-weight: 600;
+}
+
+/* Interactive visualizer hotspot dots */
+.hotspot-dot {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  background-color: var(--primary-color);
+  border: 3px solid white;
+  border-radius: 50%;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+  transition: transform 0.2s, background-color 0.2s;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
+  z-index: 10;
+}
+.hotspot-dot:hover, .hotspot-dot.active {
+  transform: translate(-50%, -50%) scale(1.4);
+  background-color: white;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 15px var(--primary-color);
+}
+
+.hotspot-label {
+  position: absolute;
+  transform: translate(-50%, -170%);
+  background-color: rgba(0, 0, 0, 0.85);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  pointer-events: none;
+  white-space: nowrap;
+  border: 1px solid #333;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 11;
+}
+.hotspot-container:hover .hotspot-label, .hotspot-dot.active + .hotspot-label {
+  opacity: 1;
+}
+
+/* Clean utility borders and details */
+.border-primary-subtle-10 {
+  border-color: rgba(255, 51, 51, 0.1) !important;
+}
+
+.text-primary-brand {
+  color: var(--primary-color);
+}
+
+/* Custom Animation shake */
+@keyframes shake-btn {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
+}
+.btn-shake {
+  animation: shake-btn 0.4s ease;
+}
