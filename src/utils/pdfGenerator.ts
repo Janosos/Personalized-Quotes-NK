@@ -28,16 +28,32 @@ export function generateQuotePDF(
     doc.setFillColor(brandRed[0], brandRed[1], brandRed[2]);
     doc.rect(0, 0, pageWidth, 5, 'F');
 
-    // Brand Name (Teko Style alternative - large bold uppercase)
-    doc.setTextColor(20, 20, 20);
-    doc.setFont('Helvetica', 'bold');
-    doc.setFontSize(28);
-    doc.text('NAKAMA', 15, 20);
+    // Get Brand Logo from DOM and render
+    const logoEl = document.getElementById('nk-brand-logo') as HTMLImageElement | null;
+    if (logoEl) {
+      try {
+        // Draw logo: aspect ratio ~2.35:1. Spanning 35mm width and 15mm height.
+        doc.addImage(logoEl, 'PNG', 15, 8, 35, 15);
+      } catch (err) {
+        console.error("Error drawing logo in PDF header:", err);
+        // Fallback text if logo load fails
+        doc.setTextColor(20, 20, 20);
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(28);
+        doc.text('NAKAMA', 15, 20);
+      }
+    } else {
+      // Fallback text
+      doc.setTextColor(20, 20, 20);
+      doc.setFont('Helvetica', 'bold');
+      doc.setFontSize(28);
+      doc.text('NAKAMA', 15, 20);
+    }
     
     doc.setFont('Helvetica', 'normal');
-    doc.setFontSize(10);
+    doc.setFontSize(9);
     doc.setTextColor(120, 120, 120);
-    doc.text('CLOTHING BRAND • COTIZADOR PERSONALIZADOS', 15, 25);
+    doc.text('CLOTHING BRAND • COTIZADOR PERSONALIZADOS', 15, 28);
 
     // Quote details (Right side)
     doc.setFont('Helvetica', 'bold');

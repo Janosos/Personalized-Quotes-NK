@@ -191,23 +191,35 @@ export const App: React.FC = () => {
     }
   };
 
-  // Helper updates for position parameters
+  // Helper updates for position parameters (supports batched partial updates)
+  const updateGarmentPositionFields = (posName: string, fields: Partial<GarmentPosition>) => {
+    setRopaConfig(prev => {
+      const updatedPositions = { ...prev.positions };
+      updatedPositions[posName] = {
+        ...updatedPositions[posName],
+        ...fields
+      };
+      return { ...prev, positions: updatedPositions };
+    });
+  };
+
+  const updateCapPositionFields = (posName: string, fields: Partial<CapPosition>) => {
+    setCapConfig(prev => {
+      const updatedPositions = { ...prev.positions };
+      updatedPositions[posName] = {
+        ...updatedPositions[posName],
+        ...fields
+      };
+      return { ...prev, positions: updatedPositions };
+    });
+  };
+
   const updateGarmentPositionField = (posName: string, field: keyof GarmentPosition, value: any) => {
-    const updatedPositions = { ...ropaConfig.positions };
-    updatedPositions[posName] = {
-      ...updatedPositions[posName],
-      [field]: value
-    };
-    setRopaConfig({ ...ropaConfig, positions: updatedPositions });
+    updateGarmentPositionFields(posName, { [field]: value });
   };
 
   const updateCapPositionField = (posName: string, field: keyof CapPosition, value: any) => {
-    const updatedPositions = { ...capConfig.positions };
-    updatedPositions[posName] = {
-      ...updatedPositions[posName],
-      [field]: value
-    };
-    setCapConfig({ ...capConfig, positions: updatedPositions });
+    updateCapPositionFields(posName, { [field]: value });
   };
 
   // File upload logic with validation
@@ -232,11 +244,15 @@ export const App: React.FC = () => {
     const reader = new FileReader();
     reader.onloadend = () => {
       if (activeProduct === 'ropa') {
-        updateGarmentPositionField(posName, 'file', file);
-        updateGarmentPositionField(posName, 'filePreview', reader.result as string);
+        updateGarmentPositionFields(posName, {
+          file,
+          filePreview: reader.result as string
+        });
       } else if (activeProduct === 'gorras') {
-        updateCapPositionField(posName, 'file', file);
-        updateCapPositionField(posName, 'filePreview', reader.result as string);
+        updateCapPositionFields(posName, {
+          file,
+          filePreview: reader.result as string
+        });
       }
     };
     reader.readAsDataURL(file);
@@ -244,11 +260,9 @@ export const App: React.FC = () => {
 
   const removePositionFile = (posName: string) => {
     if (activeProduct === 'ropa') {
-      updateGarmentPositionField(posName, 'file', null);
-      updateGarmentPositionField(posName, 'filePreview', '');
+      updateGarmentPositionFields(posName, { file: null, filePreview: '' });
     } else if (activeProduct === 'gorras') {
-      updateCapPositionField(posName, 'file', null);
-      updateCapPositionField(posName, 'filePreview', '');
+      updateCapPositionFields(posName, { file: null, filePreview: '' });
     }
   };
 
@@ -691,13 +705,22 @@ export const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-light text-dark pb-5">
       {/* 1. Header */}
-      <header className="py-4 border-bottom border-light-subtle bg-white">
+      <header className="py-3 border-bottom border-light-subtle bg-white">
         <div className="container d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
-          <div className="text-center text-sm-start">
-            <h1 className="font-display text-dark display-4 fw-bold m-0 tracking-wider">
-              NAKAMA <span className="text-primary-brand font-display">CUSTOMS</span>
-            </h1>
-            <p className="text-muted small m-0 uppercase tracking-widest font-display">LABORATORIO DE PRENDAS PERSONALIZADAS</p>
+          <div className="d-flex flex-column flex-sm-row align-items-center gap-3 text-center text-sm-start">
+            <img 
+              id="nk-brand-logo" 
+              src="/logo.png" 
+              alt="Nakama Logo" 
+              className="img-fluid"
+              style={{ maxHeight: '55px', width: 'auto', objectFit: 'contain' }} 
+            />
+            <div>
+              <h1 className="font-display text-dark display-5 fw-bold m-0 tracking-wider">
+                NAKAMA <span className="text-primary-brand font-display">CUSTOMS</span>
+              </h1>
+              <p className="text-muted small m-0 uppercase tracking-widest font-display">LABORATORIO DE PRENDAS PERSONALIZADAS</p>
+            </div>
           </div>
           <div>
             <span className="badge bg-danger rounded-pill px-3 py-2 font-display fs-6 tracking-wide">
