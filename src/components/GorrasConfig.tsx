@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import type { CapCustomization, CapPosition } from '../types';
+import type { CapCustomization } from '../types';
 
 interface GorrasConfigProps {
   config: CapCustomization;
@@ -32,7 +32,6 @@ export const GorrasConfig: React.FC<GorrasConfigProps> = ({ config, onChange }) 
       updatedPositions['Lado izquierdo'].active = false;
       updatedPositions['Lado Derecho'].active = false;
     } else if (config.option === 'Bordado Al frente y un costado') {
-      // Exactly one side must be active. If both are active or both are inactive, default to left side
       const leftActive = updatedPositions['Lado izquierdo'].active;
       const rightActive = updatedPositions['Lado Derecho'].active;
       if ((leftActive && rightActive) || (!leftActive && !rightActive)) {
@@ -72,86 +71,21 @@ export const GorrasConfig: React.FC<GorrasConfigProps> = ({ config, onChange }) 
     });
   };
 
-  const handleToggleSide = (side: 'Lado izquierdo' | 'Lado Derecho') => {
-    if (config.option !== 'Bordado Al frente y un costado') return;
-
-    const updatedPositions = { ...config.positions };
-    if (side === 'Lado izquierdo') {
-      updatedPositions['Lado izquierdo'].active = true;
-      updatedPositions['Lado Derecho'].active = false;
-    } else {
-      updatedPositions['Lado izquierdo'].active = false;
-      updatedPositions['Lado Derecho'].active = true;
-    }
-
-    onChange({
-      ...config,
-      positions: updatedPositions
-    });
-  };
-
-  const updatePositionField = (position: string, field: keyof CapPosition, value: any) => {
-    const updatedPositions = { ...config.positions };
-    updatedPositions[position] = {
-      ...updatedPositions[position],
-      [field]: value
-    };
-
-    onChange({
-      ...config,
-      positions: updatedPositions
-    });
-  };
-
-  const handleFileUpload = (position: string, e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Check size limit: 10MB
-    const maxSize = 10 * 1024 * 1024;
-    if (file.size > maxSize) {
-      alert(`El archivo es demasiado grande. El límite es de 10 MB. Tu archivo pesa ${(file.size / (1024 * 1024)).toFixed(2)} MB.`);
-      e.target.value = '';
-      return;
-    }
-
-    // Check file format
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
-    if (!allowedTypes.includes(file.type)) {
-      alert('Solo se permiten archivos de imagen en formato JPEG, JPG o PNG.');
-      e.target.value = '';
-      return;
-    }
-
-    // Convert file to base64
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      updatePositionField(position, 'file', file);
-      updatePositionField(position, 'filePreview', reader.result as string);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const removeFile = (position: string) => {
-    updatePositionField(position, 'file', null);
-    updatePositionField(position, 'filePreview', '');
-  };
-
   return (
-    <div className="custom-card bg-black border border-primary-subtle-10">
+    <div className="custom-card bg-white border border-light-subtle mb-4">
       <h3 className="font-display text-primary-brand mb-4">
         <i className="bi bi-capslock-fill me-2"></i>
         Configurar Gorras Personalizadas
       </h3>
 
-      {/* 1. Tipo de Distribución / Opciones del PDF */}
+      {/* 1. Tipo de Distribución */}
       <div className="mb-4">
         <label className="form-label text-muted small uppercase fw-bold">Distribución de Bordado:</label>
         <div className="row g-2">
           {['Bordado Al frente', 'Bordado Al frente y un costado', 'Bordado Al frente y ambos costados'].map(opt => (
             <div key={opt} className="col-12">
               <div 
-                className={`p-3 border rounded cursor-pointer d-flex align-items-center ${config.option === opt ? 'border-danger bg-danger bg-opacity-10 text-white' : 'border-secondary bg-dark text-muted'}`}
+                className={`p-3 border rounded cursor-pointer d-flex align-items-center ${config.option === opt ? 'border-danger bg-danger bg-opacity-10 text-dark' : 'border-secondary bg-light text-muted'}`}
                 onClick={() => handleOptionChange(opt as any)}
               >
                 <div className="form-check m-0">
@@ -164,8 +98,8 @@ export const GorrasConfig: React.FC<GorrasConfigProps> = ({ config, onChange }) 
                   />
                 </div>
                 <div className="ms-3">
-                  <div className="fw-bold font-display fs-5 text-light">{opt}</div>
-                  <div className="small">
+                  <div className="fw-bold font-display fs-5 text-dark">{opt}</div>
+                  <div className="small text-muted">
                     {opt === 'Bordado Al frente' && 'Bordado centralizado principal en frente.'}
                     {opt === 'Bordado Al frente y un costado' && 'Bordado en frente más un parche/diseño en el lateral.'}
                     {opt === 'Bordado Al frente y ambos costados' && 'Bordado en frente más diseños en ambos laterales.'}
@@ -191,21 +125,21 @@ export const GorrasConfig: React.FC<GorrasConfigProps> = ({ config, onChange }) 
         </select>
       </div>
 
-      {/* 3. Bordado 3D (Relieve) */}
+      {/* 3. Bordado 3D */}
       <div className="mb-4">
         <label className="form-label text-muted small uppercase fw-bold d-block">¿Agregar 3D (Bordado en Relieve)?:</label>
         <p className="text-muted small mb-2">Añade relieve tridimensional a las letras o trazos gruesos (si es factible).</p>
         <div className="btn-group" role="group" aria-label="Bordado 3D Toggle">
           <button 
             type="button" 
-            className={`btn btn-sm ${config.add3D ? 'btn-danger' : 'btn-outline-secondary text-light'}`}
+            className={`btn btn-sm ${config.add3D ? 'btn-danger text-white' : 'btn-outline-secondary text-dark'}`}
             onClick={() => onChange({ ...config, add3D: true })}
           >
             Sí, agregar 3D
           </button>
           <button 
             type="button" 
-            className={`btn btn-sm ${!config.add3D ? 'btn-danger' : 'btn-outline-secondary text-light'}`}
+            className={`btn btn-sm ${!config.add3D ? 'btn-danger text-white' : 'btn-outline-secondary text-dark'}`}
             onClick={() => onChange({ ...config, add3D: false })}
           >
             No, bordado plano
@@ -241,115 +175,7 @@ export const GorrasConfig: React.FC<GorrasConfigProps> = ({ config, onChange }) 
         </div>
       </div>
 
-      {/* 5. Posiciones y Subida de Archivos */}
-      <div className="mb-4">
-        <label className="form-label text-muted small uppercase fw-bold d-block">Detalles de Diseño por Posición:</label>
-
-        {/* Especial: Toggle de Costados en caso de "Frente y Un Costado" */}
-        {config.option === 'Bordado Al frente y un costado' && (
-          <div className="mb-3 p-2 bg-dark rounded text-center border border-secondary">
-            <span className="text-muted small d-block mb-2">Selecciona el costado activo:</span>
-            <div className="btn-group">
-              <button 
-                type="button" 
-                className={`btn btn-sm ${config.positions['Lado izquierdo']?.active ? 'btn-danger' : 'btn-outline-secondary text-light'}`}
-                onClick={() => handleToggleSide('Lado izquierdo')}
-              >
-                Costado Izquierdo
-              </button>
-              <button 
-                type="button" 
-                className={`btn btn-sm ${config.positions['Lado Derecho']?.active ? 'btn-danger' : 'btn-outline-secondary text-light'}`}
-                onClick={() => handleToggleSide('Lado Derecho')}
-              >
-                Costado Derecho
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Lista de Posiciones Activas */}
-        {Object.entries(config.positions)
-          .filter(([_, pos]) => pos.active)
-          .map(([posName, pos]) => (
-            <div key={posName} className="p-3 mb-3 border border-secondary rounded bg-dark">
-              <h6 className="font-display text-primary-brand m-0 mb-3 fs-5">{posName}</h6>
-              
-              <div className="row g-3">
-                {/* Técnica */}
-                <div className="col-12 col-sm-6">
-                  <label className="form-label text-muted small">Técnica:</label>
-                  <select
-                    className="form-select"
-                    value={pos.type}
-                    onChange={(e) => updatePositionField(posName, 'type', e.target.value)}
-                  >
-                    <option value="Bordado">Bordado</option>
-                    <option value="TPU">TPU (Vinil Textil para detalles pequeños)</option>
-                  </select>
-                </div>
-
-                {/* Tamaño Recomendado */}
-                <div className="col-12 col-sm-6">
-                  <label className="form-label text-muted small">Tamaño Recomendado:</label>
-                  <select
-                    className="form-select"
-                    value={pos.size}
-                    onChange={(e) => updatePositionField(posName, 'size', e.target.value)}
-                  >
-                    <option value="Pequeño">Pequeño (Sutil / Discreto)</option>
-                    <option value="Regular">Regular (Estándar de marca)</option>
-                    <option value="Grande">Grande (Protagonista)</option>
-                  </select>
-                </div>
-
-                {/* Subir archivo */}
-                <div className="col-12">
-                  <label className="form-label text-muted small">Imagen de Referencia (Máx. 10MB, JPEG/PNG):</label>
-                  
-                  {!pos.filePreview ? (
-                    <div className="border border-secondary border-dashed p-3 rounded text-center">
-                      <input
-                        type="file"
-                        id={`file-cap-${posName}`}
-                        className="d-none"
-                        accept=".jpeg,.jpg,.png"
-                        onChange={(e) => handleFileUpload(posName, e)}
-                      />
-                      <label htmlFor={`file-cap-${posName}`} className="m-0 cursor-pointer text-primary-brand font-display fs-5">
-                        <i className="bi bi-cloud-arrow-up-fill me-2"></i>
-                        Subir Archivo
-                      </label>
-                      <p className="text-muted small m-0 mt-1">El archivo se guardará como gorra-{posName.toLowerCase().replace(/\s+/g, '-')}.jpg/png</p>
-                    </div>
-                  ) : (
-                    <div className="d-flex align-items-center gap-3 p-2 bg-black rounded border border-secondary">
-                      <img 
-                        src={pos.filePreview} 
-                        alt="preview" 
-                        className="object-fit-cover rounded border border-secondary"
-                        style={{ width: '60px', height: '60px' }}
-                      />
-                      <div className="flex-grow-1 overflow-hidden">
-                        <p className="small m-0 text-truncate text-light fw-semibold">{pos.file?.name}</p>
-                        <p className="small m-0 text-muted">{(pos.file!.size / (1024 * 1024)).toFixed(2)} MB</p>
-                      </div>
-                      <button 
-                        type="button" 
-                        className="btn btn-outline-danger btn-sm"
-                        onClick={() => removeFile(posName)}
-                      >
-                        <i className="bi bi-trash"></i>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-      </div>
-
-      {/* 6. Detalles Adicionales */}
+      {/* 5. Detalles Adicionales */}
       <div className="mb-2">
         <label className="form-label text-muted small uppercase fw-bold">Detalles adicionales para tu gorra:</label>
         <textarea

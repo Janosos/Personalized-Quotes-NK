@@ -1,5 +1,4 @@
 import JSZip from 'jszip';
-import { saveAs } from 'file-saver';
 import { jsPDF } from 'jspdf';
 import type { GarmentCustomization, PatchCustomization, CapCustomization } from '../types';
 
@@ -65,8 +64,16 @@ export async function generateQuoteZIP(
     });
   }
 
-  // 3. Generate and trigger download
+  // 3. Generate and trigger download natively
   const zipContent = await zip.generateAsync({ type: 'blob' });
   const zipFilename = `cotizacion_nakama_${sanitizedClientName}.zip`;
-  saveAs(zipContent, zipFilename);
+
+  const url = URL.createObjectURL(zipContent);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = zipFilename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }

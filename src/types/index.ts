@@ -6,7 +6,7 @@ export interface ClientDetails {
 
 export interface GarmentPosition {
   active: boolean;
-  type: 'Bordado' | 'Estampado';
+  type: 'Bordado' | 'DTF';
   size: string; // dimensions in CM (e.g. "10x10")
   file: File | null;
   filePreview: string; // base64 data URL
