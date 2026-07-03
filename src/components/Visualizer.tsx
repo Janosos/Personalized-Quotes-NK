@@ -1,5 +1,5 @@
 import React from 'react';
-import { ProductType } from '../types';
+import type { ProductType } from '../types';
 
 interface VisualizerProps {
   productType: ProductType;

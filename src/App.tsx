@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ClientDetails, GarmentCustomization, PatchCustomization, CapCustomization, ProductType } from './types';
+import type { ClientDetails, GarmentCustomization, PatchCustomization, CapCustomization, ProductType } from './types';
 import { RopaConfig } from './components/RopaConfig';
 import { ParchesConfig } from './components/ParchesConfig';
 import { GorrasConfig } from './components/GorrasConfig';

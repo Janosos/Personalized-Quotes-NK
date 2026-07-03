@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf';
-import { ClientDetails, GarmentCustomization, PatchCustomization, CapCustomization } from '../types';
+import type { ClientDetails, GarmentCustomization, PatchCustomization, CapCustomization } from '../types';
 
 export function generateQuotePDF(
   client: ClientDetails,
@@ -23,7 +23,7 @@ export function generateQuotePDF(
   const borderLight = [230, 230, 230];
 
   // Helper functions
-  const drawHeader = (pageNum: number) => {
+  const drawHeader = (_pageNum: number) => {
     // Top Brand Border Line
     doc.setFillColor(brandRed[0], brandRed[1], brandRed[2]);
     doc.rect(0, 0, pageWidth, 5, 'F');

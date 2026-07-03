@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { CapCustomization, CapPosition } from '../types';
+import type { CapCustomization, CapPosition } from '../types';
 
 interface GorrasConfigProps {
   config: CapCustomization;

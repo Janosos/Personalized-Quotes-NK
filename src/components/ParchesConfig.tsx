@@ -1,5 +1,5 @@
 import React from 'react';
-import { PatchCustomization } from '../types';
+import type { PatchCustomization } from '../types';
 
 interface ParchesConfigProps {
   config: PatchCustomization;

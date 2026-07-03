@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { GarmentCustomization, GarmentPosition } from '../types';
+import type { GarmentCustomization, GarmentPosition } from '../types';
 
 interface RopaConfigProps {
   config: GarmentCustomization;

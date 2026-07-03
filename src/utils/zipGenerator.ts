@@ -1,7 +1,7 @@
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { jsPDF } from 'jspdf';
-import { GarmentCustomization, PatchCustomization, CapCustomization } from '../types';
+import type { GarmentCustomization, PatchCustomization, CapCustomization } from '../types';
 
 // Helper to normalize Spanish strings for filenames
 function normalizeFilename(str: string): string {
