@@ -29,6 +29,9 @@ export const App: React.FC = () => {
   // Selected position currently focused/highlighted in visualizer
   const [selectedPosition, setSelectedPosition] = useState<string | null>('Pecho Izquierdo');
 
+  // Interactive slot selection: 1 (Area 1) or 2 (Area 2)
+  const [activeSlot, setActiveSlot] = useState<1 | 2>(1);
+
   // Client Info State (Marca/Proyecto field is removed)
   const [clientDetails, setClientDetails] = useState<ClientDetails>({
     name: '',
@@ -171,21 +174,20 @@ export const App: React.FC = () => {
   // SVG Visualizer hotspots click handler
   const handlePositionToggle = (position: string) => {
     if (activeProduct === 'ropa') {
-      if (position === area1Pos) {
-        setSelectedPosition(position);
-        return;
-      }
-      if (position === area2Pos) {
-        setSelectedPosition(position);
-        return;
-      }
-
-      // Hotspot clicked is not active yet
-      if (area2Pos === null) {
-        setArea2Pos(position);
+      if (activeSlot === 1) {
+        if (position === area2Pos) {
+          // Swap positions
+          setArea2Pos(area1Pos);
+        }
+        setArea1Pos(position);
         setSelectedPosition(position);
       } else {
-        alert('Solo es posible personalizar un máximo de 2 áreas por prenda. Quita el área secundaria actual si deseas elegir una nueva.');
+        if (position === area1Pos) {
+          // Swap positions
+          setArea1Pos(area2Pos || 'Pecho Izquierdo');
+        }
+        setArea2Pos(position);
+        setSelectedPosition(position);
       }
     } else if (activeProduct === 'gorras') {
       if (capConfig.option === 'Bordado Al frente') {
@@ -362,7 +364,7 @@ export const App: React.FC = () => {
   };
 
   // Helper panel inputs layout for Ropa positions
-  const renderRopaPositionForm = (posName: string, slotTitle: string, isOptional: boolean, onRemove?: () => void) => {
+  const renderRopaPositionForm = (posName: string, slotTitle: string, isOptional: boolean, slotIndex: 1 | 2, onRemove?: () => void) => {
     const pos = ropaConfig.positions[posName];
     if (!pos) return null;
 
@@ -387,6 +389,7 @@ export const App: React.FC = () => {
         setRopaConfig({ ...ropaConfig, positions: updated });
         setArea1Pos(newPos);
         setSelectedPosition(newPos);
+        setActiveSlot(1);
       } else {
         const updated = { ...ropaConfig.positions };
         updated[newPos] = {
@@ -403,21 +406,26 @@ export const App: React.FC = () => {
         setRopaConfig({ ...ropaConfig, positions: updated });
         setArea2Pos(newPos);
         setSelectedPosition(newPos);
+        setActiveSlot(2);
       }
     };
 
-    const isSelected = selectedPosition === posName;
+    const isSlotActive = activeSlot === slotIndex;
 
     return (
       <div 
-        onClick={() => setSelectedPosition(posName)}
-        className={`p-3 mb-3 border rounded transition bg-white ${isSelected ? 'border-danger shadow-sm' : 'border-light-subtle'}`}
-        style={{ cursor: 'pointer' }}
+        onClick={() => {
+          setActiveSlot(slotIndex);
+          setSelectedPosition(posName);
+        }}
+        className={`p-3 mb-3 border rounded transition bg-white ${isSlotActive ? 'border-danger shadow' : 'border-light-subtle'}`}
+        style={{ cursor: 'pointer', borderWidth: isSlotActive ? '2px' : '1px' }}
       >
         <div className="d-flex justify-content-between align-items-center mb-3">
           <div className="d-flex align-items-center gap-2">
-            <span className={`badge ${isSelected ? 'bg-danger' : 'bg-secondary'} rounded-pill`}>
-              {slotTitle}
+            <span className={`badge ${isSlotActive ? 'bg-danger' : 'bg-secondary'} rounded-pill`}>
+              {isSlotActive ? <i className="bi bi-pencil-fill me-1"></i> : null}
+              {slotTitle} {isSlotActive ? '(Seleccionada)' : ''}
             </span>
             <select
               className="form-select form-select-sm border-0 bg-transparent fw-bold text-dark font-display fs-5"
@@ -625,13 +633,14 @@ export const App: React.FC = () => {
         {activeProduct === 'ropa' ? (
           <div>
             {/* AREA 1 (Primary Customization) */}
-            {renderRopaPositionForm(area1Pos, 'Área 1', false)}
+            {renderRopaPositionForm(area1Pos, 'Área 1', false, 1)}
 
             {/* AREA 2 (Secondary Optional Customization) */}
             {area2Pos !== null ? (
-              renderRopaPositionForm(area2Pos, 'Área 2 (Opcional)', true, () => {
+              renderRopaPositionForm(area2Pos, 'Área 2 (Opcional)', true, 2, () => {
                 setArea2Pos(null);
                 setSelectedPosition(area1Pos);
+                setActiveSlot(1);
               })
             ) : (
               <div className="text-center py-2 mt-2 border border-dashed rounded bg-light border-secondary">
@@ -642,6 +651,7 @@ export const App: React.FC = () => {
                     const firstAvailable = availableGarmentPositions.find(p => p !== area1Pos) || 'Espalda';
                     setArea2Pos(firstAvailable);
                     setSelectedPosition(firstAvailable);
+                    setActiveSlot(2);
                   }}
                 >
                   <i className="bi bi-plus-circle-fill me-2"></i>

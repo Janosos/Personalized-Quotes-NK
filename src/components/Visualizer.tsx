@@ -49,15 +49,15 @@ export const Visualizer: React.FC<VisualizerProps> = ({
     } else {
       return {
         fill: 'transparent',
-        stroke: 'rgba(0, 0, 0, 0.08)',
+        stroke: 'rgba(0, 0, 0, 0.12)',
         strokeWidth: 0.8,
+        strokeDasharray: '3 3',
         cursor: 'pointer'
       };
     }
   };
 
   const renderRopaVisualizer = () => {
-    // Beautiful curved shirt silhouette paths
     const shirtFrontPath = "M 40 16 Q 50 23 60 16 L 74 21 L 88 36 L 80 46 L 71 38 L 71 88 Q 50 92 29 88 L 29 38 L 20 46 L 12 36 L 26 21 Z";
     const shirtBackPath = "M 40 16 Q 50 19 60 16 L 74 21 L 88 36 L 80 46 L 71 38 L 71 88 Q 50 92 29 88 L 29 38 L 20 46 L 12 36 L 26 21 Z";
 
@@ -65,7 +65,7 @@ export const Visualizer: React.FC<VisualizerProps> = ({
       <div className="row g-4 justify-content-center text-center">
         {/* VISTA FRONTAL */}
         <div className="col-12 col-md-6">
-          <h5 className="text-muted mb-2 font-display">VISTA FRONTAL (Haga clic en una zona para configurar)</h5>
+          <h5 className="text-muted mb-2 font-display fs-6">VISTA FRONTAL (Haz clic en una zona para configurar)</h5>
           <div className="position-relative d-inline-block mx-auto bg-white border border-light-subtle p-3 rounded" style={{ maxWidth: '280px', width: '100%' }}>
             <svg viewBox="0 0 100 100" className="w-100" style={{ height: '240px' }}>
               {/* Shirt Outline */}
@@ -95,44 +95,18 @@ export const Visualizer: React.FC<VisualizerProps> = ({
               {/* Manga Derecha */}
               <path d="M 74 21 L 88 36 L 80 46 L 71 38 Z" {...getZoneStyles('Manga Derecha')} onClick={(e) => handleZoneClick('Manga Derecha', e)} />
             </svg>
-
-            {/* Hotspots */}
-            <div className="hotspot-container" style={{ top: '32.5%', left: '38.5%' }}>
-              <div className={`hotspot-dot ${isPositionActive('Pecho Izquierdo') ? 'active' : ''} ${isPositionEditing('Pecho Izquierdo') ? 'bg-white' : ''}`} onClick={(e) => handleZoneClick('Pecho Izquierdo', e)} />
-              <div className="hotspot-label">Pecho Izquierdo</div>
-            </div>
-            <div className="hotspot-container" style={{ top: '32.5%', left: '61.5%' }}>
-              <div className={`hotspot-dot ${isPositionActive('Pecho Derecho') ? 'active' : ''} ${isPositionEditing('Pecho Derecho') ? 'bg-white' : ''}`} onClick={(e) => handleZoneClick('Pecho Derecho', e)} />
-              <div className="hotspot-label">Pecho Derecho</div>
-            </div>
-            <div className="hotspot-container" style={{ top: '33.5%', left: '50%' }}>
-              <div className={`hotspot-dot ${isPositionActive('Pecho en Medio') ? 'active' : ''} ${isPositionEditing('Pecho en Medio') ? 'bg-white' : ''}`} onClick={(e) => handleZoneClick('Pecho en Medio', e)} />
-              <div className="hotspot-label">Pecho en Medio</div>
-            </div>
-            <div className="hotspot-container" style={{ top: '61%', left: '50%' }}>
-              <div className={`hotspot-dot ${isPositionActive('Enfrente') ? 'active' : ''} ${isPositionEditing('Enfrente') ? 'bg-white' : ''}`} onClick={(e) => handleZoneClick('Enfrente', e)} />
-              <div className="hotspot-label">Frente Completo</div>
-            </div>
-            <div className="hotspot-container" style={{ top: '23%', left: '19%' }}>
-              <div className={`hotspot-dot ${isPositionActive('Manga Izquierda') ? 'active' : ''} ${isPositionEditing('Manga Izquierda') ? 'bg-white' : ''}`} onClick={(e) => handleZoneClick('Manga Izquierda', e)} />
-              <div className="hotspot-label">Manga Izquierda</div>
-            </div>
-            <div className="hotspot-container" style={{ top: '23%', left: '81%' }}>
-              <div className={`hotspot-dot ${isPositionActive('Manga Derecha') ? 'active' : ''} ${isPositionEditing('Manga Derecha') ? 'bg-white' : ''}`} onClick={(e) => handleZoneClick('Manga Derecha', e)} />
-              <div className="hotspot-label">Manga Derecha</div>
-            </div>
           </div>
         </div>
 
         {/* VISTA TRASERA */}
         <div className="col-12 col-md-6">
-          <h5 className="text-muted mb-2 font-display">VISTA POSTERIOR (Haga clic en una zona para configurar)</h5>
+          <h5 className="text-muted mb-2 font-display fs-6">VISTA POSTERIOR (Haz clic en una zona para configurar)</h5>
           <div className="position-relative d-inline-block mx-auto bg-white border border-light-subtle p-3 rounded" style={{ maxWidth: '280px', width: '100%' }}>
             <svg viewBox="0 0 100 100" className="w-100" style={{ height: '240px' }}>
               {/* Shirt Outline Back */}
               <path d={shirtBackPath} fill="#F8FAFC" stroke="#64748B" strokeWidth="1.5" />
               {/* Collar Line Back */}
-              <path d="M 40 16 Q 50 18 60 16" fill="none" stroke="#475569" strokeWidth="1.2" />
+              <path d="M 40 16 Q 50 19 60 16" fill="none" stroke="#475569" strokeWidth="1.2" />
               {/* Sleeve stitching */}
               <path d="M 29 38 L 20 46" fill="none" stroke="#94A3B8" strokeWidth="0.8" strokeDasharray="1 1" />
               <path d="M 71 38 L 80 46" fill="none" stroke="#94A3B8" strokeWidth="0.8" strokeDasharray="1 1" />
@@ -140,12 +114,6 @@ export const Visualizer: React.FC<VisualizerProps> = ({
               {/* Clickable Zone Espalda */}
               <rect x="28" y="28" width="44" height="50" rx="3" {...getZoneStyles('Espalda')} onClick={(e) => handleZoneClick('Espalda', e)} />
             </svg>
-
-            {/* Hotspots */}
-            <div className="hotspot-container" style={{ top: '53%', left: '50%' }}>
-              <div className={`hotspot-dot ${isPositionActive('Espalda') ? 'active' : ''} ${isPositionEditing('Espalda') ? 'bg-white' : ''}`} onClick={(e) => handleZoneClick('Espalda', e)} />
-              <div className="hotspot-label">Espalda</div>
-            </div>
           </div>
         </div>
       </div>
@@ -157,7 +125,7 @@ export const Visualizer: React.FC<VisualizerProps> = ({
       <div className="row g-4 justify-content-center text-center">
         {/* VISTA FRENTE */}
         <div className="col-12 col-md-6">
-          <h5 className="text-muted mb-2 font-display">VISTA FRONTAL</h5>
+          <h5 className="text-muted mb-2 font-display fs-6">VISTA FRONTAL</h5>
           <div className="position-relative d-inline-block mx-auto bg-white border border-light-subtle p-3 rounded" style={{ maxWidth: '280px', width: '100%' }}>
             <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.2" className="text-dark w-100" style={{ height: '200px' }}>
               <path d="M15 70 Q10 40 30 25 Q50 20 70 25 Q90 40 85 70" stroke="#64748B" />
@@ -166,17 +134,12 @@ export const Visualizer: React.FC<VisualizerProps> = ({
 
               <path d="M30 35 Q50 28 70 35 Q78 50 78 60 Q50 63 22 60 Q22 50 30 35 Z" {...getZoneStyles('Enfrente')} onClick={(e) => handleZoneClick('Enfrente', e)} />
             </svg>
-
-            <div className="hotspot-container" style={{ top: '48%', left: '50%' }}>
-              <div className={`hotspot-dot ${isPositionActive('Enfrente') ? 'active' : ''} ${isPositionEditing('Enfrente') ? 'bg-white' : ''}`} onClick={(e) => handleZoneClick('Enfrente', e)} />
-              <div className="hotspot-label">Frente</div>
-            </div>
           </div>
         </div>
 
         {/* VISTA COSTADOS */}
         <div className="col-12 col-md-6">
-          <h5 className="text-muted mb-2 font-display">VISTA PERFIL</h5>
+          <h5 className="text-muted mb-2 font-display fs-6">VISTA PERFIL</h5>
           <div className="position-relative d-inline-block mx-auto bg-white border border-light-subtle p-3 rounded" style={{ maxWidth: '280px', width: '100%' }}>
             <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.2" className="text-dark w-100" style={{ height: '200px' }}>
               <path d="M15 70 Q18 35 55 35 Q85 35 90 70" stroke="#64748B" />
@@ -186,16 +149,6 @@ export const Visualizer: React.FC<VisualizerProps> = ({
               <rect x="22" y="44" width="22" height="20" rx="3" {...getZoneStyles('Lado izquierdo')} onClick={(e) => handleZoneClick('Lado izquierdo', e)} />
               <rect x="56" y="44" width="22" height="20" rx="3" {...getZoneStyles('Lado Derecho')} onClick={(e) => handleZoneClick('Lado Derecho', e)} />
             </svg>
-
-            <div className="hotspot-container" style={{ top: '54%', left: '33%' }}>
-              <div className={`hotspot-dot ${isPositionActive('Lado izquierdo') ? 'active' : ''} ${isPositionEditing('Lado izquierdo') ? 'bg-white' : ''}`} onClick={(e) => handleZoneClick('Lado izquierdo', e)} />
-              <div className="hotspot-label">Lado Izquierdo</div>
-            </div>
-
-            <div className="hotspot-container" style={{ top: '54%', left: '67%' }}>
-              <div className={`hotspot-dot ${isPositionActive('Lado Derecho') ? 'active' : ''} ${isPositionEditing('Lado Derecho') ? 'bg-white' : ''}`} onClick={(e) => handleZoneClick('Lado Derecho', e)} />
-              <div className="hotspot-label">Lado Derecho</div>
-            </div>
           </div>
         </div>
       </div>
@@ -249,7 +202,7 @@ export const Visualizer: React.FC<VisualizerProps> = ({
       <p className="text-muted small mb-4">
         {productType === 'parches' 
           ? 'Visualiza la forma y proporción del contorno para tu parche bordado.' 
-          : 'Haz clic directamente sobre la camiseta o gorra para seleccionar y activar esa sección de diseño.'}
+          : 'Haz clic directamente sobre la prenda para seleccionar y cambiar las posiciones de personalización.'}
       </p>
 
       {productType === 'ropa' && renderRopaVisualizer()}
